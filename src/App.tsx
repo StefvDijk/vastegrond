@@ -11,6 +11,8 @@ import { Menu } from './routes/Menu'
 import { Dishes } from './routes/Dishes'
 import { Ingredients } from './routes/Ingredients'
 import { Shopping } from './routes/Shopping'
+import { Guests } from './routes/Guests'
+import { Finance } from './routes/Finance'
 import { Login } from './routes/Login'
 
 function App() {
@@ -28,8 +30,8 @@ function App() {
                 <Route path="/dishes" element={<Dishes />} />
                 <Route path="/ingredients" element={<Ingredients />} />
                 <Route path="/shopping" element={<Shopping />} />
-                <Route path="/guests" element={<Placeholder title="Gasten" />} />
-                <Route path="/finance" element={<Placeholder title="Financieel" />} />
+                <Route path="/guests" element={<Guests />} />
+                <Route path="/finance" element={<Finance />} />
                 <Route
                   path="/settings"
                   element={<Placeholder title="Instellingen" />}

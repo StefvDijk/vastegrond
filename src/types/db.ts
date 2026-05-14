@@ -152,7 +152,6 @@ export type Database = {
           category: string
           created_at: string
           description: string
-          event_id: string
           id: string
         }
         Insert: {
@@ -160,7 +159,6 @@ export type Database = {
           category: string
           created_at?: string
           description: string
-          event_id: string
           id?: string
         }
         Update: {
@@ -168,18 +166,9 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string
-          event_id?: string
           id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: 'expenses_event_id_fkey'
-            columns: ['event_id']
-            isOneToOne: false
-            referencedRelation: 'events'
-            referencedColumns: ['id']
-          },
-        ]
+        Relationships: []
       }
       guests: {
         Row: {

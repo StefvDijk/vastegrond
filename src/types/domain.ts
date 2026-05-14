@@ -25,6 +25,24 @@ export type Event = {
   updatedAt: string
 }
 
+export type Expense = {
+  id: string
+  category: string
+  description: string
+  amountCents: number
+  createdAt: string
+}
+
+export function mapExpense(row: ExpenseRow): Expense {
+  return {
+    id: row.id,
+    category: row.category,
+    description: row.description,
+    amountCents: row.amount_cents,
+    createdAt: row.created_at,
+  }
+}
+
 export type GuestStatus = 'invited' | 'confirmed' | 'declined' | 'tentative'
 
 export type Guest = {
