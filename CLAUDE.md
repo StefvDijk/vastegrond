@@ -75,6 +75,16 @@ Kritische berekeningen die in code-comments uitgelegd moeten staan:
 - [ ] Fase 9: iOS-polish (animaties, haptiek-lookalike, refinement)
 - [ ] Fase 10: Cloudflare Pages deploy + remote Supabase
 
+## Deploy (Cloudflare Pages)
+
+- Hosting: Cloudflare Pages, SPA-mode via `public/_redirects` (`/* → /index.html 200`).
+- Node-versie: `.nvmrc` = 22.
+- Build command: `npm run build`, output: `dist/`.
+- Required env vars in Cloudflare project (Production + Preview):
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_ANON_KEY`
+- Na eerste deploy: voeg de pages.dev-URL toe aan Supabase → Authentication → URL Configuration → Site URL + Additional redirect URLs (`https://<project>.pages.dev/**`).
+
 ## Niet bouwen
 
 Avond-zelf draaiboek, POS, voorraad, AI-chat, notificaties, activity feed, foto-upload, marketing tools, aparte permissies. Bij twijfel: vragen.
