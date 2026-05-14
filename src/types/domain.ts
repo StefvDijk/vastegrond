@@ -79,6 +79,14 @@ export type Ingredient = {
   notes: string | null
 }
 
+export type TeamMember = {
+  id: string
+  userId: string | null
+  email: string
+  displayName: string | null
+  createdAt: string
+}
+
 export function mapEvent(row: EventRow): Event {
   return {
     id: row.id,
@@ -133,5 +141,15 @@ export function mapIngredient(row: IngredientRow): Ingredient {
     purchaseUnit: row.purchase_unit,
     supplier: row.supplier,
     notes: row.notes,
+  }
+}
+
+export function mapTeamMember(row: TeamMemberRow): TeamMember {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    email: row.email,
+    displayName: row.display_name,
+    createdAt: row.created_at,
   }
 }

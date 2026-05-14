@@ -5,7 +5,6 @@ import { queryClient } from './lib/queryClient'
 import { AuthProvider } from './lib/auth'
 import { AppShell } from './routes/AppShell'
 import { AuthGuard } from './routes/AuthGuard'
-import { Placeholder } from './routes/Placeholder'
 import { Overview } from './routes/Overview'
 import { Menu } from './routes/Menu'
 import { Dishes } from './routes/Dishes'
@@ -13,6 +12,7 @@ import { Ingredients } from './routes/Ingredients'
 import { Shopping } from './routes/Shopping'
 import { Guests } from './routes/Guests'
 import { Finance } from './routes/Finance'
+import { Settings } from './routes/Settings'
 import { Login } from './routes/Login'
 
 function App() {
@@ -32,10 +32,7 @@ function App() {
                 <Route path="/shopping" element={<Shopping />} />
                 <Route path="/guests" element={<Guests />} />
                 <Route path="/finance" element={<Finance />} />
-                <Route
-                  path="/settings"
-                  element={<Placeholder title="Instellingen" />}
-                />
+                <Route path="/settings" element={<Settings />} />
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/overview" replace />} />
