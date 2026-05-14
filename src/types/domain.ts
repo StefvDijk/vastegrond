@@ -4,7 +4,7 @@
 import type { Tables } from './db'
 
 export type EventRow = Tables<'events'>
-export type EventCourseRow = Tables<'event_courses'>
+export type CourseRow = Tables<'courses'>
 export type DishRow = Tables<'dishes'>
 export type IngredientRow = Tables<'ingredients'>
 export type DishIngredientRow = Tables<'dish_ingredients'>
@@ -39,7 +39,6 @@ export type Guest = {
 
 export type Course = {
   id: string
-  eventId: string
   position: number
   name: string
 }
@@ -89,10 +88,9 @@ export function mapGuest(row: GuestRow): Guest {
   }
 }
 
-export function mapCourse(row: EventCourseRow): Course {
+export function mapCourse(row: CourseRow): Course {
   return {
     id: row.id,
-    eventId: row.event_id,
     position: row.position,
     name: row.name,
   }

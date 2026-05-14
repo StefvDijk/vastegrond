@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { fetchCoursesByEvent } from './queries'
+import { fetchCourses } from './queries'
 import {
   createCourse,
   deleteCourse,
@@ -9,53 +9,53 @@ import {
 } from './mutations'
 
 export const menuKeys = {
-  coursesByEvent: (eventId: string) => ['menu', 'courses', eventId] as const,
+  courses: ['menu', 'courses'] as const,
 }
 
-export function useCourses(eventId: string | undefined) {
+export function useCourses() {
   return useQuery({
-    queryKey: eventId ? menuKeys.coursesByEvent(eventId) : ['menu', 'courses', 'none'],
-    queryFn: () => fetchCoursesByEvent(eventId as string),
-    enabled: Boolean(eventId),
+    queryKey: menuKeys.courses,
+    queryFn: fetchCourses,
   })
 }
 
-function invalidateCourses(client: ReturnType<typeof useQueryClient>, eventId: string) {
-  return client.invalidateQueries({ queryKey: menuKeys.coursesByEvent(eventId) })
+function useInvalidate() {
+  const client = useQueryClient()
+  return () => client.invalidateQueries({ queryKey: menuKeys.courses })
 }
 
-export function useCreateCourse(eventId: string) {
-  const client = useQueryClient()
+export function useCreateCourse() {
+  const invalidate = useInvalidate()
   return useMutation({
     mutationFn: createCourse,
-    onSuccess: () => invalidateCourses(client, eventId),
+    onSuccess: () => invalidate(),
     onError: (error: Error) => toast.error(error.message),
   })
 }
 
-export function useRenameCourse(eventId: string) {
-  const client = useQueryClient()
+export function useRenameCourse() {
+  const invalidate = useInvalidate()
   return useMutation({
     mutationFn: renameCourse,
-    onSuccess: () => invalidateCourses(client, eventId),
+    onSuccess: () => invalidate(),
     onError: (error: Error) => toast.error(error.message),
   })
 }
 
-export function useDeleteCourse(eventId: string) {
-  const client = useQueryClient()
+export function useDeleteCourse() {
+  const invalidate = useInvalidate()
   return useMutation({
     mutationFn: deleteCourse,
-    onSuccess: () => invalidateCourses(client, eventId),
+    onSuccess: () => invalidate(),
     onError: (error: Error) => toast.error(error.message),
   })
 }
 
-export function useUpdateCoursePosition(eventId: string) {
-  const client = useQueryClient()
+export function useUpdateCoursePosition() {
+  const invalidate = useInvalidate()
   return useMutation({
     mutationFn: updateCoursePosition,
-    onSuccess: () => invalidateCourses(client, eventId),
+    onSuccess: () => invalidate(),
     onError: (error: Error) => toast.error(error.message),
   })
 }

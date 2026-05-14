@@ -2,17 +2,12 @@ import { supabase } from '../../lib/supabase'
 import { mapCourse, type Course } from '../../types/domain'
 
 export async function createCourse(input: {
-  eventId: string
   name: string
   position: number
 }): Promise<Course> {
   const { data, error } = await supabase
-    .from('event_courses')
-    .insert({
-      event_id: input.eventId,
-      name: input.name,
-      position: input.position,
-    })
+    .from('courses')
+    .insert({ name: input.name, position: input.position })
     .select('*')
     .single()
 
@@ -28,7 +23,7 @@ export async function renameCourse(input: {
   name: string
 }): Promise<Course> {
   const { data, error } = await supabase
-    .from('event_courses')
+    .from('courses')
     .update({ name: input.name })
     .eq('id', input.id)
     .select('*')
@@ -42,7 +37,7 @@ export async function renameCourse(input: {
 }
 
 export async function deleteCourse(id: string): Promise<void> {
-  const { error } = await supabase.from('event_courses').delete().eq('id', id)
+  const { error } = await supabase.from('courses').delete().eq('id', id)
   if (error) {
     console.error('deleteCourse failed:', error)
     throw new Error(error.message)
@@ -54,7 +49,7 @@ export async function updateCoursePosition(input: {
   position: number
 }): Promise<void> {
   const { error } = await supabase
-    .from('event_courses')
+    .from('courses')
     .update({ position: input.position })
     .eq('id', input.id)
   if (error) {

@@ -47,8 +47,8 @@ supabase/
 
 Zie ook het prototype voor logica. Tabellen:
 
-- `events` — hoofd-event (datum, gasten, ticket_price, locatie_kosten, etc.)
-- `event_courses` — gangen (volgorde, naam)
+- `events` — pop-up-avond (datum, gasten, ticket_price, locatie_kosten, etc.). We hebben er 3: 30/31 juli + 1 aug 2026.
+- `courses` — gangen van het gedeelde menu (volgorde, naam). **Eén menu voor alle 3 avonden** — popup-context, identieke kaart, alleen gasten en allergenen verschillen.
 - `dishes` — gerecht (per gang, portions, notes)
 - `ingredients` — ingredient-bibliotheek (naam, eenheid, prijs_per_eenheid, leverancier)
 - `dish_ingredients` — koppeltabel (gerecht ↔ ingredient + hoeveelheid)

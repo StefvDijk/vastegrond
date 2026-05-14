@@ -4,13 +4,9 @@ import { toast } from 'sonner'
 import { useCourses, useCreateCourse } from './hooks'
 import { CourseRow } from './CourseRow'
 
-type CourseListProps = {
-  eventId: string
-}
-
-export function CourseList({ eventId }: CourseListProps) {
-  const { data: courses, isLoading, isError, error } = useCourses(eventId)
-  const createMutation = useCreateCourse(eventId)
+export function CourseList() {
+  const { data: courses, isLoading, isError, error } = useCourses()
+  const createMutation = useCreateCourse()
   const [draft, setDraft] = useState('')
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -23,11 +19,7 @@ export function CourseList({ eventId }: CourseListProps) {
     }
     const nextPosition =
       (courses?.reduce((max, c) => Math.max(max, c.position), -1) ?? -1) + 1
-    await createMutation.mutateAsync({
-      eventId,
-      name: trimmed,
-      position: nextPosition,
-    })
+    await createMutation.mutateAsync({ name: trimmed, position: nextPosition })
     setDraft('')
   }
 
@@ -49,7 +41,7 @@ export function CourseList({ eventId }: CourseListProps) {
     <div className="space-y-3">
       {list.length === 0 ? (
         <p className="rounded-ios bg-surface-2 p-4 text-sm text-text-muted">
-          Nog geen gangen voor dit event. Voeg de eerste hieronder toe.
+          Nog geen gangen. Voeg de eerste hieronder toe.
         </p>
       ) : (
         <ol className="space-y-2">
@@ -61,7 +53,6 @@ export function CourseList({ eventId }: CourseListProps) {
               total={list.length}
               previous={list[index - 1]}
               next={list[index + 1]}
-              eventId={eventId}
             />
           ))}
         </ol>

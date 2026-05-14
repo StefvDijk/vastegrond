@@ -14,7 +14,6 @@ type CourseRowProps = {
   total: number
   previous?: Course
   next?: Course
-  eventId: string
 }
 
 export function CourseRow({
@@ -23,15 +22,14 @@ export function CourseRow({
   total,
   previous,
   next,
-  eventId,
 }: CourseRowProps) {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(course.name)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const renameMutation = useRenameCourse(eventId)
-  const deleteMutation = useDeleteCourse(eventId)
-  const positionMutation = useUpdateCoursePosition(eventId)
+  const renameMutation = useRenameCourse()
+  const deleteMutation = useDeleteCourse()
+  const positionMutation = useUpdateCoursePosition()
 
   useEffect(() => {
     if (editing) {
@@ -66,8 +64,8 @@ export function CourseRow({
 
   async function move(target: Course | undefined) {
     if (!target) return
-    // Wissel positions tussen course en target. Doe twee schrijfacties — geen
-    // unique-index op (event_id, position) meer (zie migratie 0004).
+    // Wissel positions tussen course en target. Twee losse updates — geen
+    // unique-index meer (zie migratie 0004).
     await Promise.all([
       positionMutation.mutateAsync({ id: course.id, position: target.position }),
       positionMutation.mutateAsync({ id: target.id, position: course.position }),

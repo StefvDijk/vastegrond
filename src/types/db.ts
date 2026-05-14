@@ -15,6 +15,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      courses: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          position: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          position: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number
+        }
+        Relationships: []
+      }
       dish_ingredients: {
         Row: {
           amount: number
@@ -81,39 +102,7 @@ export type Database = {
             foreignKeyName: 'dishes_course_id_fkey'
             columns: ['course_id']
             isOneToOne: false
-            referencedRelation: 'event_courses'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      event_courses: {
-        Row: {
-          created_at: string
-          event_id: string
-          id: string
-          name: string
-          position: number
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          id?: string
-          name: string
-          position: number
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          id?: string
-          name?: string
-          position?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'event_courses_event_id_fkey'
-            columns: ['event_id']
-            isOneToOne: false
-            referencedRelation: 'events'
+            referencedRelation: 'courses'
             referencedColumns: ['id']
           },
         ]
