@@ -10,6 +10,7 @@ import { Overview } from './routes/Overview'
 import { Menu } from './routes/Menu'
 import { Dishes } from './routes/Dishes'
 import { Ingredients } from './routes/Ingredients'
+import { Shopping } from './routes/Shopping'
 import { Login } from './routes/Login'
 
 function App() {
@@ -26,10 +27,7 @@ function App() {
                 <Route path="/menu" element={<Menu />} />
                 <Route path="/dishes" element={<Dishes />} />
                 <Route path="/ingredients" element={<Ingredients />} />
-                <Route
-                  path="/shopping"
-                  element={<Placeholder title="Boodschappenlijst" />}
-                />
+                <Route path="/shopping" element={<Shopping />} />
                 <Route path="/guests" element={<Placeholder title="Gasten" />} />
                 <Route path="/finance" element={<Placeholder title="Financieel" />} />
                 <Route
