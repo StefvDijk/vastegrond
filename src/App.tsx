@@ -8,6 +8,8 @@ import { AuthGuard } from './routes/AuthGuard'
 import { Placeholder } from './routes/Placeholder'
 import { Overview } from './routes/Overview'
 import { Menu } from './routes/Menu'
+import { Dishes } from './routes/Dishes'
+import { Ingredients } from './routes/Ingredients'
 import { Login } from './routes/Login'
 
 function App() {
@@ -22,11 +24,8 @@ function App() {
                 <Route index element={<Navigate to="/overview" replace />} />
                 <Route path="/overview" element={<Overview />} />
                 <Route path="/menu" element={<Menu />} />
-                <Route path="/dishes" element={<Placeholder title="Gerechten" />} />
-                <Route
-                  path="/ingredients"
-                  element={<Placeholder title="Ingrediënten" />}
-                />
+                <Route path="/dishes" element={<Dishes />} />
+                <Route path="/ingredients" element={<Ingredients />} />
                 <Route
                   path="/shopping"
                   element={<Placeholder title="Boodschappenlijst" />}
