@@ -1,13 +1,18 @@
 import { useMemo, useState } from 'react'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Ingredient } from '../types/domain'
 import { formatEuro } from '../lib/format'
-import {
-  useDeleteIngredient,
-  useIngredients,
-} from '../features/ingredients/hooks'
+import { useDeleteIngredient, useIngredients } from '../features/ingredients/hooks'
 import { IngredientForm } from '../features/ingredients/IngredientForm'
+import {
+  Button,
+  Card,
+  Counter,
+  ScreenHeader,
+  Search,
+  Sheet,
+} from '../components/ui'
 
 export function Ingredients() {
   const { data, isLoading, isError, error } = useIngredients()
@@ -32,134 +37,134 @@ export function Ingredients() {
     try {
       await del.mutateAsync(ingredient.id)
       toast.success('Verwijderd')
+      setEditing(null)
     } catch {
-      /* foreign-key fout (gebruikt in gerecht) wordt al getoast */
+      /* fk error wordt in hook getoast */
     }
   }
 
+  const total = data?.length ?? 0
+
   return (
-    <div className="space-y-6">
-      <section className="card p-5">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Ingrediënten
-            </h1>
-            <p className="mt-1 text-sm text-text-muted">
-              Gedeelde bibliotheek. Eenheid + prijs bepalen de foodcost van een
-              gerecht.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setAdding(true)
-              setEditing(null)
-            }}
-            className="tap inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
-          >
-            <Plus className="size-4" aria-hidden /> Nieuw ingrediënt
-          </button>
-        </header>
-        <input
-          type="search"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          placeholder="Zoek op naam of leverancier…"
-          className="mt-4 w-full rounded-ios border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
-        />
-      </section>
+    <div className="vg-page flex flex-col gap-s-9">
+      <ScreenHeader
+        eyebrow="Bibliotheek"
+        title="Ingrediënten"
+        description="Gedeelde bibliotheek. Eenheid en prijs bepalen de foodcost van een gerecht."
+        actions={
+          <Button variant="accent" onClick={() => setAdding(true)}>
+            <Plus size={16} aria-hidden /> Ingrediënt
+          </Button>
+        }
+      />
 
-      {adding ? (
-        <section className="card p-5 animate-rise">
-          <h2 className="mb-3 text-lg font-semibold tracking-tight">
-            Nieuw ingrediënt
-          </h2>
-          <IngredientForm
-            onCancel={() => setAdding(false)}
-            onSaved={() => setAdding(false)}
+      <div className="flex items-center gap-s-4 flex-wrap">
+        <div className="flex-1 max-w-[420px]">
+          <Search
+            placeholder="Zoek op naam of leverancier…"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
           />
-        </section>
-      ) : null}
+        </div>
+        <Counter>
+          {filtered.length} van {total}
+        </Counter>
+      </div>
 
-      {editing ? (
-        <section className="card p-5 animate-rise">
-          <h2 className="mb-3 text-lg font-semibold tracking-tight">
-            {editing.name} bewerken
-          </h2>
-          <IngredientForm
-            ingredient={editing}
-            onCancel={() => setEditing(null)}
-            onSaved={() => setEditing(null)}
-          />
-        </section>
-      ) : null}
-
-      <section className="card p-0 overflow-hidden">
+      <Card className="p-0 overflow-hidden">
         {isLoading ? (
-          <p className="p-5 text-sm text-text-muted">Ingrediënten laden…</p>
+          <p className="p-s-7 t-body-m t-soft">Ingrediënten laden…</p>
         ) : isError ? (
-          <p className="p-5 text-sm text-danger">
-            Kon ingrediënten niet laden —{' '}
-            {error instanceof Error ? error.message : 'fout'}
+          <p className="p-s-7 t-body-m text-negative">
+            Kon ingrediënten niet laden — {error instanceof Error ? error.message : 'fout'}
           </p>
         ) : filtered.length === 0 ? (
-          <p className="p-5 text-sm text-text-muted">
+          <p className="p-s-7 t-body-m t-soft">
             {data && data.length > 0
               ? 'Geen resultaten voor deze zoekopdracht.'
               : 'Nog geen ingrediënten. Voeg er één toe om te beginnen.'}
           </p>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-surface-2 text-left text-xs uppercase tracking-wide text-text-subtle">
+          <table className="vg-table">
+            <thead>
               <tr>
-                <th className="px-4 py-3">Naam</th>
-                <th className="px-4 py-3">Eenheid</th>
-                <th className="px-4 py-3 text-right">Prijs / eenheid</th>
-                <th className="px-4 py-3">Inkoop</th>
-                <th className="px-4 py-3">Leverancier</th>
-                <th className="px-4 py-3 text-right">Acties</th>
+                <th>Ingrediënt</th>
+                <th>Eenheid</th>
+                <th className="vg-table__right">Prijs</th>
+                <th>Inkoop</th>
+                <th>Leverancier</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody>
               {filtered.map((i) => (
-                <tr key={i.id} className="hover:bg-surface-2/60">
-                  <td className="px-4 py-2 font-medium">{i.name}</td>
-                  <td className="px-4 py-2 tabular-nums">{i.unit}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">
+                <tr
+                  key={i.id}
+                  onClick={() => {
+                    setEditing(i)
+                    setAdding(false)
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <td className="vg-table__title">{i.name}</td>
+                  <td className="vg-table__muted tabular">{i.unit}</td>
+                  <td className="vg-table__right tabular">
                     {formatEuro(i.pricePerUnitCents / 100)}
                   </td>
-                  <td className="px-4 py-2">{i.purchaseUnit ?? '—'}</td>
-                  <td className="px-4 py-2">{i.supplier ?? '—'}</td>
-                  <td className="px-4 py-2 text-right">
-                    <div className="inline-flex items-center gap-1">
-                      <button
-                        type="button"
-                        aria-label="Bewerken"
-                        onClick={() => {
-                          setEditing(i)
-                          setAdding(false)
-                        }}
-                        className="rounded-ios p-1.5 text-text-muted hover:bg-surface-2 hover:text-text"
-                      >
-                        <Pencil className="size-4" aria-hidden />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="Verwijderen"
-                        onClick={() => void handleDelete(i)}
-                        className="rounded-ios p-1.5 text-text-muted hover:bg-danger/10 hover:text-danger"
-                      >
-                        <Trash2 className="size-4" aria-hidden />
-                      </button>
-                    </div>
-                  </td>
+                  <td className="vg-table__muted">{i.purchaseUnit ?? '—'}</td>
+                  <td className="vg-table__muted">{i.supplier ?? '—'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
-      </section>
+      </Card>
+
+      {/* New ingredient sheet */}
+      <Sheet
+        open={adding}
+        onClose={() => setAdding(false)}
+        eyebrow="Nieuw"
+        title="Ingrediënt toevoegen"
+        footer={
+          <>
+            <span />
+            <div className="flex gap-s-3">
+              <Button variant="ghost" onClick={() => setAdding(false)}>
+                Annuleren
+              </Button>
+              <Button
+                type="submit"
+                form="ingredient-form"
+                variant="accent"
+              >
+                Opslaan
+              </Button>
+            </div>
+          </>
+        }
+      >
+        <IngredientForm
+          onCancel={() => setAdding(false)}
+          onSaved={() => setAdding(false)}
+        />
+      </Sheet>
+
+      {/* Edit ingredient sheet */}
+      <Sheet
+        open={Boolean(editing)}
+        onClose={() => setEditing(null)}
+        eyebrow="Bewerken"
+        title={editing?.name ?? ''}
+      >
+        {editing ? (
+          <IngredientForm
+            ingredient={editing}
+            onCancel={() => setEditing(null)}
+            onSaved={() => setEditing(null)}
+            onDelete={() => void handleDelete(editing)}
+          />
+        ) : null}
+      </Sheet>
     </div>
   )
 }

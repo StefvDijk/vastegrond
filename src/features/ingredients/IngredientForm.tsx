@@ -3,11 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import type { Ingredient } from '../../types/domain'
-import { cn } from '../../lib/cn'
-import {
-  useCreateIngredient,
-  useUpdateIngredient,
-} from './hooks'
+import { Button, Field, Input, Textarea } from '../../components/ui'
+import { useCreateIngredient, useUpdateIngredient } from './hooks'
 
 const schema = z.object({
   name: z.string().trim().min(1, 'Naam is verplicht').max(120),
@@ -24,13 +21,10 @@ type IngredientFormProps = {
   ingredient?: Ingredient
   onCancel: () => void
   onSaved: () => void
+  onDelete?: () => void
 }
 
-export function IngredientForm({
-  ingredient,
-  onCancel,
-  onSaved,
-}: IngredientFormProps) {
+export function IngredientForm({ ingredient, onCancel, onSaved, onDelete }: IngredientFormProps) {
   const create = useCreateIngredient()
   const update = useUpdateIngredient()
   const isPending = create.isPending || update.isPending
@@ -44,9 +38,7 @@ export function IngredientForm({
     defaultValues: {
       name: ingredient?.name ?? '',
       unit: ingredient?.unit ?? 'g',
-      pricePerUnitEuros: ingredient
-        ? Math.round(ingredient.pricePerUnitCents) / 100
-        : 0,
+      pricePerUnitEuros: ingredient ? Math.round(ingredient.pricePerUnitCents) / 100 : 0,
       purchaseUnit: ingredient?.purchaseUnit ?? '',
       supplier: ingredient?.supplier ?? '',
       notes: ingredient?.notes ?? '',
@@ -72,115 +64,76 @@ export function IngredientForm({
       toast.success(ingredient ? 'Bijgewerkt' : 'Toegevoegd')
       onSaved()
     } catch {
-      /* error already toasted in hook */
+      /* toast in hook */
     }
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+    <form
+      id="ingredient-form"
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col gap-s-4"
+    >
       <Field label="Naam" error={errors.name?.message}>
-        <input
-          type="text"
-          className={inputClass(Boolean(errors.name))}
+        <Input
           placeholder="Bv. Bloem T55"
           {...register('name')}
+          invalid={Boolean(errors.name)}
         />
       </Field>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-s-3">
         <Field label="Eenheid" error={errors.unit?.message}>
-          <input
-            type="text"
-            className={inputClass(Boolean(errors.unit))}
-            placeholder="g · kg · l · stuk"
-            {...register('unit')}
-          />
+          <Input placeholder="g · kg · l · stuk" {...register('unit')} invalid={Boolean(errors.unit)} />
         </Field>
-        <Field
-          label="Prijs (€ / eenheid)"
-          error={errors.pricePerUnitEuros?.message}
-        >
-          <input
+        <Field label="Prijs / eenheid (€)" error={errors.pricePerUnitEuros?.message}>
+          <Input
             type="number"
             min={0}
             step="0.01"
             inputMode="decimal"
-            className={inputClass(Boolean(errors.pricePerUnitEuros))}
             {...register('pricePerUnitEuros')}
+            invalid={Boolean(errors.pricePerUnitEuros)}
           />
         </Field>
         <Field label="Inkoop-eenheid" error={errors.purchaseUnit?.message}>
-          <input
-            type="text"
-            className={inputClass(Boolean(errors.purchaseUnit))}
+          <Input
             placeholder="zak 25kg"
             {...register('purchaseUnit')}
+            invalid={Boolean(errors.purchaseUnit)}
           />
         </Field>
       </div>
 
       <Field label="Leverancier" error={errors.supplier?.message}>
-        <input
-          type="text"
-          className={inputClass(Boolean(errors.supplier))}
+        <Input
           placeholder="Bv. De Molen"
           {...register('supplier')}
+          invalid={Boolean(errors.supplier)}
         />
       </Field>
 
       <Field label="Notities" error={errors.notes?.message}>
-        <textarea
-          rows={2}
-          className={cn(inputClass(Boolean(errors.notes)), 'resize-none')}
-          {...register('notes')}
-        />
+        <Textarea rows={3} {...register('notes')} invalid={Boolean(errors.notes)} />
       </Field>
 
-      <div className="flex justify-end gap-2 pt-1">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isPending}
-          className="rounded-ios px-3 py-1.5 text-sm font-medium text-text-muted hover:bg-surface-2"
-        >
-          Annuleren
-        </button>
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-ios bg-accent px-3 py-1.5 text-sm font-medium text-accent-fg hover:opacity-90 disabled:opacity-50"
-        >
-          {isPending ? 'Opslaan…' : 'Opslaan'}
-        </button>
+      <div className="flex justify-between gap-s-3 pt-s-2">
+        {ingredient && onDelete ? (
+          <Button type="button" variant="ghost" danger onClick={onDelete} disabled={isPending}>
+            Verwijderen
+          </Button>
+        ) : (
+          <span />
+        )}
+        <div className="flex gap-s-3">
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={isPending}>
+            Annuleren
+          </Button>
+          <Button type="submit" variant="accent" disabled={isPending}>
+            {isPending ? 'Opslaan…' : 'Opslaan'}
+          </Button>
+        </div>
       </div>
     </form>
-  )
-}
-
-function inputClass(hasError: boolean): string {
-  return cn(
-    'w-full rounded-ios border bg-surface px-3 py-2 text-sm outline-none transition-colors',
-    'focus:ring-2 focus:ring-accent/30',
-    hasError
-      ? 'border-danger focus:border-danger'
-      : 'border-border focus:border-accent',
-  )
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string
-  error?: string
-  children: React.ReactNode
-}) {
-  return (
-    <label className="block">
-      <span className="block text-sm font-medium text-text">{label}</span>
-      <div className="mt-1">{children}</div>
-      {error ? <p className="mt-1 text-xs text-danger">{error}</p> : null}
-    </label>
   )
 }

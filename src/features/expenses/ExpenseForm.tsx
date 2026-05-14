@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import type { Expense } from '../../types/domain'
-import { cn } from '../../lib/cn'
+import { Button, Field, Input } from '../../components/ui'
 import { useCreateExpense, useUpdateExpense } from './hooks'
 
 const schema = z.object({
@@ -59,80 +59,38 @@ export function ExpenseForm({ expense, onCancel, onSaved }: ExpenseFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-      <div className="grid grid-cols-2 gap-3">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-s-4">
+      <div className="grid grid-cols-2 gap-s-3">
         <Field label="Categorie" error={errors.category?.message}>
-          <input
-            type="text"
+          <Input
             placeholder="Drank · Decor · Servicebureau"
-            className={inputClass(Boolean(errors.category))}
             {...register('category')}
+            invalid={Boolean(errors.category)}
           />
         </Field>
         <Field label="Bedrag (€)" error={errors.amountEuros?.message}>
-          <input
+          <Input
             type="number"
             min={0}
             step="0.01"
             inputMode="decimal"
-            className={inputClass(Boolean(errors.amountEuros))}
             {...register('amountEuros')}
+            invalid={Boolean(errors.amountEuros)}
           />
         </Field>
       </div>
       <Field label="Omschrijving" error={errors.description?.message}>
-        <input
-          type="text"
-          className={inputClass(Boolean(errors.description))}
-          {...register('description')}
-        />
+        <Input {...register('description')} invalid={Boolean(errors.description)} />
       </Field>
 
-      <div className="flex justify-end gap-2 pt-1">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isPending}
-          className="rounded-ios px-3 py-1.5 text-sm font-medium text-text-muted hover:bg-surface-2"
-        >
+      <div className="flex justify-end gap-s-3 pt-s-2">
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={isPending}>
           Annuleren
-        </button>
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-ios bg-accent px-3 py-1.5 text-sm font-medium text-accent-fg hover:opacity-90 disabled:opacity-50"
-        >
+        </Button>
+        <Button type="submit" variant="accent" disabled={isPending}>
           {isPending ? 'Opslaan…' : 'Opslaan'}
-        </button>
+        </Button>
       </div>
     </form>
-  )
-}
-
-function inputClass(hasError: boolean): string {
-  return cn(
-    'w-full rounded-ios border bg-surface px-3 py-2 text-sm outline-none transition-colors',
-    'focus:ring-2 focus:ring-accent/30',
-    hasError
-      ? 'border-danger focus:border-danger'
-      : 'border-border focus:border-accent',
-  )
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string
-  error?: string
-  children: React.ReactNode
-}) {
-  return (
-    <label className="block">
-      <span className="block text-sm font-medium text-text">{label}</span>
-      <div className="mt-1">{children}</div>
-      {error ? <p className="mt-1 text-xs text-danger">{error}</p> : null}
-    </label>
   )
 }

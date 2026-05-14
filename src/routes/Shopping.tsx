@@ -1,25 +1,26 @@
 import { useMemo, useState } from 'react'
-import { ChevronDown, ChevronRight, ShoppingBasket } from 'lucide-react'
+import { ShoppingBasket } from 'lucide-react'
 import { useEvents } from '../features/events/hooks'
-import { Skeleton, SkeletonCard } from '../components/Skeleton'
 import { EmptyState } from '../components/EmptyState'
+import { Skeleton } from '../components/Skeleton'
 import { useIngredients } from '../features/ingredients/hooks'
-import {
-  useAllDishIngredients,
-  useDishes,
-} from '../features/dishes/hooks'
+import { useAllDishIngredients, useDishes } from '../features/dishes/hooks'
 import {
   aggregateShopping,
   groupBySupplier,
   type ShoppingLine,
 } from '../features/shopping/aggregate'
 import { formatEuro, formatNumber } from '../lib/format'
+import { Card, Checkbox, ScreenHeader } from '../components/ui'
+import { cn } from '../lib/cn'
 
 export function Shopping() {
   const eventsQ = useEvents()
   const ingredientsQ = useIngredients()
   const dishesQ = useDishes()
   const linksQ = useAllDishIngredients()
+
+  const [checked, setChecked] = useState<Record<string, boolean>>({})
 
   const totalGuests = useMemo(
     () => (eventsQ.data ?? []).reduce((sum, e) => sum + e.guestCount, 0),
@@ -37,187 +38,121 @@ export function Shopping() {
 
   const groups = useMemo(() => groupBySupplier(lines), [lines])
   const grandTotalCents = lines.reduce((sum, l) => sum + l.totalCostCents, 0)
+  const checkedCount = Object.values(checked).filter(Boolean).length
 
   const loading =
-    eventsQ.isLoading ||
-    ingredientsQ.isLoading ||
-    dishesQ.isLoading ||
-    linksQ.isLoading
+    eventsQ.isLoading || ingredientsQ.isLoading || dishesQ.isLoading || linksQ.isLoading
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="card p-5">
-          <Skeleton className="h-7 w-48 mb-4" />
-          <div className="grid grid-cols-3 gap-4">
-            <Skeleton className="h-12" />
-            <Skeleton className="h-12" />
-            <Skeleton className="h-12" />
-          </div>
-        </div>
-        <SkeletonCard lines={5} />
-        <SkeletonCard lines={4} />
+      <div className="vg-page">
+        <Skeleton className="h-10 w-48 mb-s-7" />
+        <Skeleton className="h-32 w-full mb-s-5" />
+        <Skeleton className="h-32 w-full" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <section className="card p-5">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Boodschappenlijst
-        </h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Aggregatie over alle gerechten × totaal gasten van de 3 avonden.
-          Inkoop-eenheid is een hint — kies zelf het aantal zakken/flessen.
-        </p>
+    <div className="vg-page flex flex-col gap-s-9">
+      <ScreenHeader
+        eyebrow="Aggregatie"
+        title="Boodschappen"
+        description="Aggregatie over alle gerechten × totaal gasten van de 3 avonden. Vink af terwijl je inkoopt."
+      />
 
-        <dl className="mt-4 grid grid-cols-3 gap-4 text-sm">
+      <Card className="p-0">
+        <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-line">
+          <Stat label="Regels" value={String(lines.length)} />
           <Stat label="Totaal gasten" value={String(totalGuests)} />
-          <Stat label="Unieke ingrediënten" value={String(lines.length)} />
+          <Stat label="Afgevinkt" value={`${checkedCount} / ${lines.length}`} />
           <Stat
-            label="Totale foodcost"
+            label="Inkoop"
             value={formatEuro(grandTotalCents / 100)}
-            emphasis
+            accent
           />
-        </dl>
-      </section>
+        </div>
+      </Card>
 
       {lines.length === 0 ? (
         <EmptyState
           icon={ShoppingBasket}
           title="Nog niets te kopen"
-          description="Voeg ingrediënten toe aan gerechten in de Gerechten-tab — dan rolt de lijst hier automatisch uit."
+          description="Voeg ingrediënten toe aan gerechten in de Recepten-tab — dan rolt de lijst hier automatisch uit."
         />
       ) : (
-        groups.map((group) => (
-          <section key={group.supplier ?? '__none__'} className="card p-5">
-            <header className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold tracking-tight">
-                {group.supplier ?? 'Geen leverancier'}
-              </h2>
-              <p className="text-sm tabular-nums text-text-muted">
-                Subtotaal{' '}
-                <span className="font-semibold text-text">
-                  {formatEuro(group.subtotalCents / 100)}
-                </span>
-              </p>
-            </header>
-
-            <div className="mt-4 overflow-hidden rounded-ios border border-border">
-              <table className="w-full text-sm">
-                <thead className="bg-surface-2 text-left text-xs uppercase tracking-wide text-text-subtle">
-                  <tr>
-                    <th className="w-7 px-2 py-2"></th>
-                    <th className="px-3 py-2">Ingrediënt</th>
-                    <th className="px-3 py-2 text-right">Hoeveelheid</th>
-                    <th className="px-3 py-2">Inkoop-eenheid</th>
-                    <th className="px-3 py-2 text-right">Kosten</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {group.lines.map((line) => (
-                    <LineRow key={line.ingredient.id} line={line} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        ))
+        <div className="flex flex-col gap-s-5">
+          {groups.map((group) => (
+            <SupplierCard
+              key={group.supplier ?? '__none__'}
+              supplier={group.supplier}
+              subtotalCents={group.subtotalCents}
+              lines={group.lines}
+              checked={checked}
+              onToggle={(id) =>
+                setChecked((prev) => ({ ...prev, [id]: !prev[id] }))
+              }
+            />
+          ))}
+        </div>
       )}
     </div>
   )
 }
 
-function LineRow({ line }: { line: ShoppingLine }) {
-  const [expanded, setExpanded] = useState(false)
-
+function SupplierCard({
+  supplier,
+  subtotalCents,
+  lines,
+  checked,
+  onToggle,
+}: {
+  supplier: string | null
+  subtotalCents: number
+  lines: ShoppingLine[]
+  checked: Record<string, boolean>
+  onToggle: (id: string) => void
+}) {
   return (
-    <>
-      <tr className="hover:bg-surface-2/40">
-        <td className="px-2 py-2">
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            aria-expanded={expanded}
-            aria-label={expanded ? 'Inklappen' : 'Uitklappen'}
-            className="grid size-6 place-items-center rounded-ios text-text-muted hover:bg-surface-2 hover:text-text"
-          >
-            {expanded ? (
-              <ChevronDown className="size-3.5" aria-hidden />
-            ) : (
-              <ChevronRight className="size-3.5" aria-hidden />
-            )}
-          </button>
-        </td>
-        <td className="px-3 py-2 font-medium">{line.ingredient.name}</td>
-        <td className="px-3 py-2 text-right tabular-nums">
-          {formatNumber(line.totalAmount)}{' '}
-          <span className="text-xs text-text-muted">
-            {line.ingredient.unit}
-          </span>
-        </td>
-        <td className="px-3 py-2 text-text-muted">
-          {line.ingredient.purchaseUnit ?? '—'}
-        </td>
-        <td className="px-3 py-2 text-right tabular-nums">
-          {formatEuro(line.totalCostCents / 100)}
-        </td>
-      </tr>
-      {expanded ? (
-        <tr className="bg-surface-2/40">
-          <td></td>
-          <td colSpan={4} className="px-3 py-2">
-            <p className="mb-2 text-xs uppercase tracking-wide text-text-subtle">
-              Komt uit
-            </p>
-            <ul className="space-y-1 text-xs">
-              {line.contributions.map((c) => (
-                <li
-                  key={c.dish.id}
-                  className="flex justify-between gap-3 text-text-muted"
-                >
-                  <span>{c.dish.name}</span>
-                  <span className="tabular-nums">
-                    {formatNumber(c.perPortion)} {line.ingredient.unit}/p ·{' '}
-                    <span className="font-medium text-text">
-                      {formatNumber(c.totalForDish)} {line.ingredient.unit}
-                    </span>{' '}
-                    totaal
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </td>
-        </tr>
-      ) : null}
-    </>
+    <Card className="p-0 overflow-hidden">
+      <div className="flex items-baseline justify-between p-s-7">
+        <h2 className="t-heading-l">{supplier ?? 'Geen leverancier'}</h2>
+        <span className="t-body-m t-soft tabular">{formatEuro(subtotalCents / 100)}</span>
+      </div>
+      <ul className="list-none m-0 p-0" style={{ borderTop: '1px solid var(--line)' }}>
+        {lines.map((line) => {
+          const id = line.ingredient.id
+          const done = Boolean(checked[id])
+          return (
+            <li
+              key={id}
+              className={cn('vg-list__row', done && 'vg-list__row--done')}
+              style={{ gridTemplateColumns: '24px 1fr 140px 120px', cursor: 'pointer' }}
+              onClick={() => onToggle(id)}
+            >
+              <Checkbox checked={done} onChange={() => onToggle(id)} onClick={(e) => e.stopPropagation()} />
+              <span className="vg-list__title">{line.ingredient.name}</span>
+              <span className="tabular text-ink-soft text-right">
+                {formatNumber(line.totalAmount)} {line.ingredient.unit}
+              </span>
+              <span className="tabular text-ink text-right font-medium">
+                {formatEuro(line.totalCostCents / 100)}
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+    </Card>
   )
 }
 
-function Stat({
-  label,
-  value,
-  emphasis,
-}: {
-  label: string
-  value: string
-  emphasis?: boolean
-}) {
+function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div>
-      <dt className="text-xs uppercase tracking-wide text-text-subtle">
-        {label}
-      </dt>
-      <dd
-        className={
-          emphasis
-            ? 'mt-0.5 text-xl font-semibold tabular-nums'
-            : 'mt-0.5 text-xl font-semibold tabular-nums'
-        }
-      >
+    <div className="p-s-6">
+      <span className="t-caption t-faded">{label}</span>
+      <div className={accent ? 't-heading-l tabular text-accent mt-s-2' : 't-heading-l tabular mt-s-2'}>
         {value}
-      </dd>
+      </div>
     </div>
   )
 }

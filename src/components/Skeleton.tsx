@@ -26,7 +26,7 @@ export function SkeletonStack({
 
 export function SkeletonCard({ lines = 3 }: { lines?: number }) {
   return (
-    <div className="card p-5">
+    <div className="vg-card">
       <Skeleton className="h-6 w-1/3 mb-4" />
       <div className="space-y-2">
         {Array.from({ length: lines }, (_, i) => (

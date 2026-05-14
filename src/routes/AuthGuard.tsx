@@ -7,8 +7,8 @@ export function AuthGuard() {
 
   if (loading) {
     return (
-      <div className="min-h-full grid place-items-center bg-bg">
-        <div className="text-sm text-text-muted">Laden…</div>
+      <div className="min-h-full grid place-items-center">
+        <div className="t-body-m t-soft">Laden…</div>
       </div>
     )
   }

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
+import { Button, Input } from '../../components/ui'
 import { useCourses, useCreateCourse } from './hooks'
 import { CourseRow } from './CourseRow'
 
@@ -24,12 +25,12 @@ export function CourseList() {
   }
 
   if (isLoading) {
-    return <p className="text-sm text-text-muted">Gangen laden…</p>
+    return <p className="t-body-m t-soft">Gangen laden…</p>
   }
 
   if (isError) {
     return (
-      <p className="text-sm text-danger">
+      <p className="t-body-m text-negative">
         Kon gangen niet laden — {error instanceof Error ? error.message : 'fout'}
       </p>
     )
@@ -38,13 +39,11 @@ export function CourseList() {
   const list = courses ?? []
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-s-3">
       {list.length === 0 ? (
-        <p className="rounded-ios bg-surface-2 p-4 text-sm text-text-muted">
-          Nog geen gangen. Voeg de eerste hieronder toe.
-        </p>
+        <p className="vg-empty">Nog geen gangen. Voeg de eerste hieronder toe.</p>
       ) : (
-        <ol className="space-y-2">
+        <ol className="flex flex-col gap-s-2 list-none p-0 m-0">
           {list.map((course, index) => (
             <CourseRow
               key={course.id}
@@ -58,21 +57,19 @@ export function CourseList() {
         </ol>
       )}
 
-      <form onSubmit={onSubmit} className="flex gap-2 pt-1">
-        <input
-          type="text"
+      <form onSubmit={onSubmit} className="flex gap-s-3 pt-s-2">
+        <Input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Nieuwe gang (bv. Voorgerecht)"
-          className="flex-1 rounded-ios border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
         />
-        <button
+        <Button
           type="submit"
+          variant="accent"
           disabled={createMutation.isPending || !draft.trim()}
-          className="tap inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          <Plus className="size-4" aria-hidden /> Voeg toe
-        </button>
+          <Plus size={16} aria-hidden /> Voeg toe
+        </Button>
       </form>
     </div>
   )

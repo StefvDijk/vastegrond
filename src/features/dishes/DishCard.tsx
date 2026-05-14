@@ -36,27 +36,34 @@ export function DishCard({ course, dish, links, ingredients }: DishCardProps) {
   }
 
   return (
-    <article className="rounded-ios border border-border bg-surface">
-      <header className="flex items-center gap-3 px-4 py-3">
+    <article
+      className="overflow-hidden"
+      style={{
+        background: 'var(--paper-elevated)',
+        borderRadius: 'var(--r-m)',
+        border: '1px solid var(--line)',
+      }}
+    >
+      <header className="flex items-center gap-s-3 px-s-5 py-s-4">
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
           aria-label={expanded ? 'Inklappen' : 'Uitklappen'}
-          className="grid size-7 shrink-0 place-items-center rounded-ios text-text-muted hover:bg-surface-2 hover:text-text"
+          className="vg-sheet__close"
         >
           {expanded ? (
-            <ChevronDown className="size-4" aria-hidden />
+            <ChevronDown size={16} aria-hidden />
           ) : (
-            <ChevronRight className="size-4" aria-hidden />
+            <ChevronRight size={16} aria-hidden />
           )}
         </button>
         <div className="flex-1 min-w-0">
-          <h3 className="truncate font-medium">{dish.name}</h3>
-          <p className="text-xs text-text-subtle">
-            {formatNumber(dish.portions)} porties · recept{' '}
-            {formatEuro(recipeCents / 100)} · per portie{' '}
-            <span className="font-medium text-text">
+          <h3 className="truncate text-body-m font-medium text-ink">{dish.name}</h3>
+          <p className="t-caption t-faded mt-1 normal-case tracking-normal">
+            {formatNumber(dish.portions)} porties · recept {formatEuro(recipeCents / 100)} · per
+            portie{' '}
+            <span className="text-ink font-medium">
               {formatEuro(perPortionCents / 100)}
             </span>
           </p>
@@ -68,30 +75,28 @@ export function DishCard({ course, dish, links, ingredients }: DishCardProps) {
             setEditing((v) => !v)
             setExpanded(true)
           }}
-          className={cn(
-            'rounded-ios p-1.5 text-text-muted hover:bg-surface-2 hover:text-text',
-            editing && 'bg-surface-2 text-text',
-          )}
+          className={cn('vg-sheet__close', editing && 'bg-paper-deep text-ink')}
         >
-          <Pencil className="size-4" aria-hidden />
+          <Pencil size={16} aria-hidden />
         </button>
         <button
           type="button"
           aria-label="Verwijderen"
           onClick={handleDelete}
-          className="rounded-ios p-1.5 text-text-muted hover:bg-danger/10 hover:text-danger"
+          className="vg-sheet__close hover:text-negative"
         >
-          <Trash2 className="size-4" aria-hidden />
+          <Trash2 size={16} aria-hidden />
         </button>
       </header>
 
       {expanded ? (
-        <div className="border-t border-border bg-surface-2/50 p-4 space-y-4">
+        <div
+          className="flex flex-col gap-s-5 p-s-5"
+          style={{ borderTop: '1px solid var(--line)', background: 'var(--paper)' }}
+        >
           {editing ? (
-            <div className="rounded-ios bg-surface p-4">
-              <h4 className="mb-3 text-sm font-semibold tracking-tight">
-                Gerecht bewerken
-              </h4>
+            <div className="vg-card">
+              <h4 className="t-heading-m mb-s-4">Gerecht bewerken</h4>
               <DishForm
                 course={course}
                 dish={dish}
@@ -102,15 +107,13 @@ export function DishCard({ course, dish, links, ingredients }: DishCardProps) {
           ) : null}
 
           {dish.notes ? (
-            <p className="whitespace-pre-line rounded-ios bg-surface p-3 text-sm text-text-muted">
+            <p className="whitespace-pre-line rounded-m bg-paper-elevated p-s-4 t-body-s t-soft">
               {dish.notes}
             </p>
           ) : null}
 
-          <div className="rounded-ios bg-surface p-4">
-            <h4 className="mb-3 text-sm font-semibold tracking-tight">
-              Ingrediënten
-            </h4>
+          <div className="vg-card">
+            <h4 className="t-heading-m mb-s-4">Ingrediënten</h4>
             <DishIngredientsEditor dishId={dish.id} portions={dish.portions} />
           </div>
         </div>

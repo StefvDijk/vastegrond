@@ -13,6 +13,8 @@ import { Shopping } from './routes/Shopping'
 import { Guests } from './routes/Guests'
 import { Finance } from './routes/Finance'
 import { Settings } from './routes/Settings'
+import { Notes } from './routes/Notes'
+import { Inspiration } from './routes/Inspiration'
 import { Login } from './routes/Login'
 
 function App() {
@@ -32,6 +34,8 @@ function App() {
                 <Route path="/shopping" element={<Shopping />} />
                 <Route path="/guests" element={<Guests />} />
                 <Route path="/finance" element={<Finance />} />
+                <Route path="/notes" element={<Notes />} />
+                <Route path="/inspiration" element={<Inspiration />} />
                 <Route path="/settings" element={<Settings />} />
               </Route>
             </Route>

@@ -39,9 +39,9 @@ supabase/
   config.toml     lokale stack-config
 ```
 
-## Routes (8 tabs)
+## Routes (10 tabs)
 
-`/overview`, `/menu`, `/dishes`, `/ingredients`, `/shopping`, `/guests`, `/finance`, `/settings`. `/login` apart buiten de shell.
+`/overview`, `/menu`, `/dishes`, `/ingredients`, `/shopping`, `/guests`, `/finance`, `/notes`, `/inspiration`, `/settings`. `/login` apart buiten de shell.
 
 ## Datamodel (samenvatting)
 
@@ -55,11 +55,13 @@ Zie ook het prototype voor logica. Tabellen:
 - `guests` — gast-RSVP (naam, status, aantal_personen, dieet, notes)
 - `team_members` — teamleden (alle toegang gelijk)
 - `expenses` — overige uitgaven (categorie, omschrijving, bedrag)
+- `notes` — vrije notities (titel, body, tags[], optionele koppeling aan dish/course, author)
+- `inspirations` — links/recepten/foto's (title, note, url?, image_path?, tags[], dish/course koppeling, author). `image_path` verwijst naar een object in de private Supabase Storage bucket `inspirations`. Frontend gebruikt signed URLs (1u) via `features/inspirations/storage.ts`.
 
 Kritische berekeningen die in code-comments uitgelegd moeten staan:
 1. **Foodcost per gerecht** = som(`hoeveelheid * prijs_per_eenheid`) van alle ingredienten, gedeeld door portions.
 2. **Boodschappen-aggregatie** = sommeer per ingredient over alle gerechten × gasten, afgerond naar inkoop-eenheid.
-3. **Vogelfrei-afrekening** = (gasten × ticket) − foodcost-totaal − locatie_kosten − overige_kosten.
+3. **Vogelfrei-afrekening** = (gasten × ticket) − 40% afdracht aan Vogelfrei − foodcost-totaal − locatie_kosten − overige_kosten. De 40%-share zit als constante `VOGELFREI_SHARE` in `src/lib/finance.ts`.
 
 ## Status
 
@@ -74,6 +76,7 @@ Kritische berekeningen die in code-comments uitgelegd moeten staan:
 - [x] Fase 8: Settings + team
 - [x] Fase 9: iOS-polish (skeleton, empty-state, tap-feedback, animate-rise)
 - [x] Fase 10: Cloudflare Workers deploy (Workers + static assets, niet klassieke Pages) — live op vastegrond.stefvandijk10.workers.dev
+- [x] Fase 11: Notities + Inspiratie tabbladen (vrije notities, links/foto's met Supabase Storage)
 
 ## Deploy (Cloudflare Pages)
 
@@ -87,7 +90,9 @@ Kritische berekeningen die in code-comments uitgelegd moeten staan:
 
 ## Niet bouwen
 
-Avond-zelf draaiboek, POS, voorraad, AI-chat, notificaties, activity feed, foto-upload, marketing tools, aparte permissies. Bij twijfel: vragen.
+Avond-zelf draaiboek, POS, voorraad, AI-chat, notificaties, activity feed, marketing tools, aparte permissies. Bij twijfel: vragen.
+
+Foto-upload bestaat alleen op `/inspiration` (private bucket `inspirations`); niet uitbreiden naar andere modules zonder overleg.
 
 ## Werkwijze per fase
 

@@ -11,6 +11,8 @@ export type DishIngredientRow = Tables<'dish_ingredients'>
 export type GuestRow = Tables<'guests'>
 export type TeamMemberRow = Tables<'team_members'>
 export type ExpenseRow = Tables<'expenses'>
+export type NoteRow = Tables<'notes'>
+export type InspirationRow = Tables<'inspirations'>
 
 export type Event = {
   id: string
@@ -151,5 +153,61 @@ export function mapTeamMember(row: TeamMemberRow): TeamMember {
     email: row.email,
     displayName: row.display_name,
     createdAt: row.created_at,
+  }
+}
+
+export type Note = {
+  id: string
+  title: string
+  body: string
+  tags: string[]
+  dishId: string | null
+  courseId: string | null
+  authorId: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type Inspiration = {
+  id: string
+  title: string
+  note: string
+  url: string | null
+  imagePath: string | null
+  tags: string[]
+  dishId: string | null
+  courseId: string | null
+  authorId: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export function mapNote(row: NoteRow): Note {
+  return {
+    id: row.id,
+    title: row.title,
+    body: row.body,
+    tags: row.tags ?? [],
+    dishId: row.dish_id,
+    courseId: row.course_id,
+    authorId: row.author_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+
+export function mapInspiration(row: InspirationRow): Inspiration {
+  return {
+    id: row.id,
+    title: row.title,
+    note: row.note,
+    url: row.url,
+    imagePath: row.image_path,
+    tags: row.tags ?? [],
+    dishId: row.dish_id,
+    courseId: row.course_id,
+    authorId: row.author_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   }
 }

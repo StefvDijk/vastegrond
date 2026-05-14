@@ -8,26 +8,19 @@ type EmptyStateProps = {
   action?: ReactNode
 }
 
-export function EmptyState({
-  icon: Icon,
-  title,
-  description,
-  action,
-}: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (
-    <div className="rounded-ios bg-surface-2 px-6 py-10 text-center">
+    <div className="vg-empty">
       {Icon ? (
-        <div className="mx-auto mb-3 grid size-12 place-items-center rounded-full bg-surface text-text-muted shadow-card">
-          <Icon className="size-5" aria-hidden />
+        <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-paper-deep text-ink-soft">
+          <Icon className="h-5 w-5" aria-hidden />
         </div>
       ) : null}
-      <h3 className="text-base font-semibold tracking-tight">{title}</h3>
+      <h3 className="t-heading-m">{title}</h3>
       {description ? (
-        <p className="mx-auto mt-1 max-w-md text-sm text-text-muted">
-          {description}
-        </p>
+        <p className="t-body-m t-soft mx-auto mt-2 max-w-md">{description}</p>
       ) : null}
-      {action ? <div className="mt-4">{action}</div> : null}
+      {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
     </div>
   )
 }

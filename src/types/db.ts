@@ -250,6 +250,114 @@ export type Database = {
         }
         Relationships: []
       }
+      inspirations: {
+        Row: {
+          author_id: string | null
+          course_id: string | null
+          created_at: string
+          dish_id: string | null
+          id: string
+          image_path: string | null
+          note: string
+          tags: string[]
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          course_id?: string | null
+          created_at?: string
+          dish_id?: string | null
+          id?: string
+          image_path?: string | null
+          note?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          course_id?: string | null
+          created_at?: string
+          dish_id?: string | null
+          id?: string
+          image_path?: string | null
+          note?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'inspirations_course_id_fkey'
+            columns: ['course_id']
+            isOneToOne: false
+            referencedRelation: 'courses'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'inspirations_dish_id_fkey'
+            columns: ['dish_id']
+            isOneToOne: false
+            referencedRelation: 'dishes'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      notes: {
+        Row: {
+          author_id: string | null
+          body: string
+          course_id: string | null
+          created_at: string
+          dish_id: string | null
+          id: string
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          body?: string
+          course_id?: string | null
+          created_at?: string
+          dish_id?: string | null
+          id?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          course_id?: string | null
+          created_at?: string
+          dish_id?: string | null
+          id?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'notes_course_id_fkey'
+            columns: ['course_id']
+            isOneToOne: false
+            referencedRelation: 'courses'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notes_dish_id_fkey'
+            columns: ['dish_id']
+            isOneToOne: false
+            referencedRelation: 'dishes'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       team_members: {
         Row: {
           created_at: string

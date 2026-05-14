@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth'
+import { Button, Card, Field, Input } from '../components/ui'
 
 const emailSchema = z.string().trim().toLowerCase().email('Geldig e-mailadres vereist')
 
@@ -15,8 +16,8 @@ export function Login() {
 
   if (loading) {
     return (
-      <div className="min-h-full grid place-items-center bg-bg">
-        <div className="text-sm text-text-muted">Laden…</div>
+      <div className="min-h-full grid place-items-center">
+        <div className="t-body-m t-soft">Laden…</div>
       </div>
     )
   }
@@ -58,33 +59,37 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-full grid place-items-center bg-bg p-4">
-      <div className="card w-full max-w-sm p-6">
-        <h1 className="text-xl font-semibold tracking-tight">Inloggen</h1>
-        <p className="mt-2 text-sm text-text-muted">
+    <div className="min-h-full grid place-items-center p-s-5">
+      <Card className="w-full max-w-sm">
+        <div className="flex items-center gap-3 mb-2">
+          <span className="vg-topnav__mark" aria-hidden />
+          <span className="t-heading-m">Vaste Grond</span>
+        </div>
+        <h1 className="t-heading-l mt-4">Inloggen</h1>
+        <p className="t-body-m t-soft mt-2">
           Vul je e-mailadres in. Je krijgt een magic link om in te loggen.
         </p>
 
         {sent ? (
-          <div className="mt-5 rounded-ios bg-surface-2 p-4 text-sm">
-            <p className="font-medium text-text">Check je inbox.</p>
-            <p className="mt-1 text-text-muted">
-              We hebben een inloglink gestuurd naar <strong>{email}</strong>. Open
-              de link op dit apparaat.
+          <div className="mt-6 rounded-m bg-paper-deep p-s-5 text-body-s">
+            <p className="t-heading-m text-ink">Check je inbox.</p>
+            <p className="mt-2 t-soft">
+              We hebben een inloglink gestuurd naar <strong>{email}</strong>. Open de link op dit
+              apparaat.
             </p>
             <button
               type="button"
               onClick={() => setSent(false)}
-              className="mt-3 text-sm text-accent hover:underline"
+              className="vg-btn vg-btn--ghost mt-3"
             >
               Ander e-mailadres gebruiken
             </button>
           </div>
         ) : (
-          <form onSubmit={onSubmit} className="mt-5 space-y-3">
-            <label className="block">
-              <span className="block text-sm font-medium text-text">E-mail</span>
-              <input
+          <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-s-4">
+            <Field label="E-mail" htmlFor="login-email">
+              <Input
+                id="login-email"
                 type="email"
                 autoComplete="email"
                 inputMode="email"
@@ -92,19 +97,14 @@ export function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="jij@voorbeeld.nl"
-                className="mt-1 w-full rounded-ios border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
               />
-            </label>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg transition-opacity hover:opacity-90 disabled:opacity-50"
-            >
+            </Field>
+            <Button type="submit" variant="accent" disabled={submitting}>
               {submitting ? 'Versturen…' : 'Stuur magic link'}
-            </button>
+            </Button>
           </form>
         )}
-      </div>
+      </Card>
     </div>
   )
 }

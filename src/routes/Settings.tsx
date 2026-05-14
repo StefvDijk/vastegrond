@@ -1,17 +1,15 @@
 import { useState } from 'react'
-import { LogOut, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Mail, Pencil, Plus, Trash2, UserRound } from 'lucide-react'
 import { toast } from 'sonner'
 import type { TeamMember } from '../types/domain'
 import { useAuth } from '../lib/auth'
 import { formatDateShort } from '../lib/format'
-import {
-  useDeleteTeamMember,
-  useTeamMembers,
-} from '../features/team/hooks'
+import { useDeleteTeamMember, useTeamMembers } from '../features/team/hooks'
 import { TeamMemberForm } from '../features/team/TeamMemberForm'
+import { Button, Card, CardSeparator, ScreenHeader } from '../components/ui'
 
 export function Settings() {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const teamQ = useTeamMembers()
   const del = useDeleteTeamMember()
 
@@ -28,160 +26,125 @@ export function Settings() {
     }
   }
 
-  async function handleSignOut() {
-    try {
-      await signOut()
-      toast.success('Uitgelogd')
-    } catch (error) {
-      console.error('Sign out failed:', error)
-      toast.error('Uitloggen mislukt')
-    }
-  }
-
   return (
-    <div className="space-y-6">
-      <section className="card p-5">
-        <h1 className="text-2xl font-semibold tracking-tight">Instellingen</h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Account & team. Echte invites lopen via het Supabase-dashboard — hier
-          beheer je de zichtbare team-allowlist.
-        </p>
-      </section>
-
-      <section className="card p-5">
-        <h2 className="text-lg font-semibold tracking-tight">Account</h2>
-        <dl className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-text-subtle">
-              E-mail
-            </dt>
-            <dd className="mt-0.5 font-medium tabular-nums">
-              {user?.email ?? '—'}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-text-subtle">
-              Gebruikers-ID
-            </dt>
-            <dd className="mt-0.5 truncate font-mono text-xs text-text-muted">
-              {user?.id ?? '—'}
-            </dd>
-          </div>
-        </dl>
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className="mt-4 inline-flex items-center gap-1 rounded-ios border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text-muted hover:bg-surface-2 hover:text-text"
-        >
-          <LogOut className="size-4" aria-hidden /> Uitloggen
-        </button>
-      </section>
-
-      <section className="card p-5">
-        <header className="flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">Team</h2>
-            <p className="mt-1 text-sm text-text-muted">
-              Wie heeft toegang tot deze app. Sign-ups zijn uit; gebruikers
-              komen binnen via invites in het Supabase-dashboard.
-            </p>
-          </div>
-          <button
-            type="button"
+    <div className="vg-page flex flex-col gap-s-9">
+      <ScreenHeader
+        eyebrow="Wie & waar"
+        title="Team"
+        description="Toegang tot de app. Sign-ups zijn uit — invites lopen via het Supabase-dashboard."
+        actions={
+          <Button
+            variant="accent"
             onClick={() => {
               setAdding(true)
               setEditing(null)
             }}
-            className="tap inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
           >
-            <Plus className="size-4" aria-hidden /> Nieuw teamlid
-          </button>
-        </header>
+            <Plus size={16} aria-hidden /> Teamlid
+          </Button>
+        }
+      />
 
-        {adding ? (
-          <div className="mt-4 rounded-ios border border-border bg-surface p-4 animate-rise">
-            <TeamMemberForm
-              onCancel={() => setAdding(false)}
-              onSaved={() => setAdding(false)}
-            />
-          </div>
-        ) : null}
+      {adding ? (
+        <Card>
+          <h2 className="t-heading-l mb-s-5">Nieuw teamlid</h2>
+          <TeamMemberForm onCancel={() => setAdding(false)} onSaved={() => setAdding(false)} />
+        </Card>
+      ) : null}
+      {editing ? (
+        <Card>
+          <h2 className="t-heading-l mb-s-5">{editing.email}</h2>
+          <TeamMemberForm
+            member={editing}
+            onCancel={() => setEditing(null)}
+            onSaved={() => setEditing(null)}
+          />
+        </Card>
+      ) : null}
 
-        {editing ? (
-          <div className="mt-4 rounded-ios border border-border bg-surface p-4 animate-rise">
-            <TeamMemberForm
-              member={editing}
-              onCancel={() => setEditing(null)}
-              onSaved={() => setEditing(null)}
-            />
-          </div>
-        ) : null}
-
-        <div className="mt-4 overflow-hidden rounded-ios border border-border">
+      {/* Team grid */}
+      <section>
+        <div className="grid gap-s-5 md:grid-cols-2">
           {teamQ.isLoading ? (
-            <p className="p-4 text-sm text-text-muted">Team laden…</p>
+            <p className="t-body-m t-soft">Team laden…</p>
           ) : teamQ.isError ? (
-            <p className="p-4 text-sm text-danger">
+            <p className="t-body-m text-negative">
               {teamQ.error instanceof Error ? teamQ.error.message : 'Fout'}
             </p>
           ) : (teamQ.data?.length ?? 0) === 0 ? (
-            <p className="p-4 text-sm text-text-muted">
-              Nog geen teamleden toegevoegd. Begin met jezelf.
-            </p>
+            <Card>
+              <p className="t-body-m t-soft">Nog geen teamleden toegevoegd.</p>
+            </Card>
           ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-surface-2 text-left text-xs uppercase tracking-wide text-text-subtle">
-                <tr>
-                  <th className="px-3 py-2">E-mail</th>
-                  <th className="px-3 py-2">Weergavenaam</th>
-                  <th className="px-3 py-2">Toegevoegd</th>
-                  <th className="px-3 py-2 text-right">Acties</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {(teamQ.data ?? []).map((m) => (
-                  <tr key={m.id} className="hover:bg-surface-2/40">
-                    <td className="px-3 py-2 font-medium">{m.email}</td>
-                    <td className="px-3 py-2 text-text-muted">
-                      {m.displayName ?? '—'}
-                    </td>
-                    <td className="px-3 py-2 text-text-muted tabular-nums">
-                      {formatDateShort(m.createdAt)}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <div className="inline-flex items-center gap-1">
-                        <button
-                          type="button"
-                          aria-label="Bewerken"
-                          onClick={() => {
-                            setEditing(m)
-                            setAdding(false)
-                          }}
-                          className="rounded-ios p-1.5 text-text-muted hover:bg-surface-2 hover:text-text"
-                        >
-                          <Pencil className="size-4" aria-hidden />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label="Verwijderen"
-                          onClick={() => void handleDelete(m)}
-                          className="rounded-ios p-1.5 text-text-muted hover:bg-danger/10 hover:text-danger"
-                        >
-                          <Trash2 className="size-4" aria-hidden />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            (teamQ.data ?? []).map((m) => (
+              <Card key={m.id}>
+                <div className="flex items-start justify-between gap-s-3">
+                  <div>
+                    <h3 className="t-heading-m">{m.displayName ?? m.email}</h3>
+                    <span className="t-body-s t-soft mt-s-1 block">
+                      Toegevoegd {formatDateShort(m.createdAt)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-s-1">
+                    <button
+                      type="button"
+                      aria-label="Bewerken"
+                      className="vg-sheet__close"
+                      onClick={() => {
+                        setEditing(m)
+                        setAdding(false)
+                      }}
+                    >
+                      <Pencil size={16} aria-hidden />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Verwijderen"
+                      className="vg-sheet__close hover:text-negative"
+                      onClick={() => void handleDelete(m)}
+                    >
+                      <Trash2 size={16} aria-hidden />
+                    </button>
+                  </div>
+                </div>
+                <CardSeparator />
+                <div className="flex flex-col gap-s-2 t-body-s text-ink-soft">
+                  <span className="flex items-center gap-s-2">
+                    <Mail size={16} aria-hidden /> {m.email}
+                  </span>
+                  <span className="flex items-center gap-s-2">
+                    <UserRound size={16} aria-hidden />
+                    {m.userId ? 'Gekoppeld' : 'Nog niet ingelogd'}
+                  </span>
+                </div>
+              </Card>
+            ))
           )}
         </div>
       </section>
 
-      <section className="card p-5">
-        <h2 className="text-lg font-semibold tracking-tight">Iemand toegang geven</h2>
-        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-text-muted">
+      {/* Eigen account */}
+      <Card>
+        <h2 className="t-heading-l">Eigen account</h2>
+        <CardSeparator />
+        <div className="grid gap-s-5 md:grid-cols-2">
+          <div>
+            <span className="t-caption t-faded">E-mail</span>
+            <div className="mt-s-2 t-body-m text-ink">{user?.email ?? '—'}</div>
+          </div>
+          <div>
+            <span className="t-caption t-faded">Gebruikers-ID</span>
+            <div className="mt-s-2 t-body-s t-faded font-mono break-all">
+              {user?.id ?? '—'}
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Uitleg invites */}
+      <Card>
+        <h2 className="t-heading-l">Iemand toegang geven</h2>
+        <ol className="mt-s-5 flex flex-col gap-s-3 list-decimal pl-s-5 t-body-m t-soft">
           <li>
             Open{' '}
             <a
@@ -195,13 +158,12 @@ export function Settings() {
             .
           </li>
           <li>
-            Klik <strong>Add user → Send invitation</strong>, vul het e-mailadres in.
+            Klik <strong className="text-ink">Add user → Send invitation</strong>, vul het
+            e-mailadres in.
           </li>
-          <li>
-            Voeg datzelfde e-mailadres hier toe als teamlid voor zichtbaarheid.
-          </li>
+          <li>Voeg datzelfde e-mailadres hier toe als teamlid voor zichtbaarheid.</li>
         </ol>
-      </section>
+      </Card>
     </div>
   )
 }

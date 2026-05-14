@@ -2,11 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, Check, Pencil, Trash2, X } from 'lucide-react'
 import type { Course } from '../../types/domain'
 import { cn } from '../../lib/cn'
-import {
-  useDeleteCourse,
-  useRenameCourse,
-  useUpdateCoursePosition,
-} from './hooks'
+import { useDeleteCourse, useRenameCourse, useUpdateCoursePosition } from './hooks'
 
 type CourseRowProps = {
   course: Course
@@ -16,13 +12,7 @@ type CourseRowProps = {
   next?: Course
 }
 
-export function CourseRow({
-  course,
-  index,
-  total,
-  previous,
-  next,
-}: CourseRowProps) {
+export function CourseRow({ course, index, total, previous, next }: CourseRowProps) {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(course.name)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -64,8 +54,6 @@ export function CourseRow({
 
   async function move(target: Course | undefined) {
     if (!target) return
-    // Wissel positions tussen course en target. Twee losse updates — geen
-    // unique-index meer (zie migratie 0004).
     await Promise.all([
       positionMutation.mutateAsync({ id: course.id, position: target.position }),
       positionMutation.mutateAsync({ id: target.id, position: course.position }),
@@ -79,10 +67,11 @@ export function CourseRow({
   }
 
   return (
-    <li className="flex items-center gap-2 rounded-ios border border-border bg-surface px-3 py-2">
-      <span className="grid size-7 shrink-0 place-items-center rounded-ios bg-surface-2 text-xs font-medium tabular-nums text-text-muted">
-        {index + 1}
-      </span>
+    <li
+      className="flex items-center gap-s-3 px-s-4 py-s-3"
+      style={{ borderTop: index === 0 ? 'none' : '1px solid var(--line)' }}
+    >
+      <span className="t-caption t-faded tabular w-6 text-center">{index + 1}</span>
 
       {editing ? (
         <input
@@ -99,32 +88,28 @@ export function CourseRow({
               cancelRename()
             }
           }}
-          className="flex-1 rounded-ios border border-border bg-bg px-2 py-1 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+          className="vg-input vg-input--inline flex-1"
         />
       ) : (
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="flex-1 cursor-text text-left text-sm font-medium hover:text-accent"
+          className="flex-1 text-left text-body-m font-medium text-ink hover:text-accent transition-colors"
         >
           {course.name}
         </button>
       )}
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-s-1">
         {editing ? (
           <>
             <IconBtn
               label="Opslaan"
               onClick={commitRename}
               disabled={renameMutation.isPending}
-              icon={<Check className="size-4" aria-hidden />}
+              icon={<Check size={16} aria-hidden />}
             />
-            <IconBtn
-              label="Annuleren"
-              onClick={cancelRename}
-              icon={<X className="size-4" aria-hidden />}
-            />
+            <IconBtn label="Annuleren" onClick={cancelRename} icon={<X size={16} aria-hidden />} />
           </>
         ) : (
           <>
@@ -132,24 +117,24 @@ export function CourseRow({
               label="Omhoog"
               onClick={() => void move(previous)}
               disabled={index === 0 || positionMutation.isPending}
-              icon={<ArrowUp className="size-4" aria-hidden />}
+              icon={<ArrowUp size={16} aria-hidden />}
             />
             <IconBtn
               label="Omlaag"
               onClick={() => void move(next)}
               disabled={index === total - 1 || positionMutation.isPending}
-              icon={<ArrowDown className="size-4" aria-hidden />}
+              icon={<ArrowDown size={16} aria-hidden />}
             />
             <IconBtn
               label="Hernoemen"
               onClick={() => setEditing(true)}
-              icon={<Pencil className="size-4" aria-hidden />}
+              icon={<Pencil size={16} aria-hidden />}
             />
             <IconBtn
               label="Verwijderen"
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
-              icon={<Trash2 className="size-4" aria-hidden />}
+              icon={<Trash2 size={16} aria-hidden />}
               variant="danger"
             />
           </>
@@ -180,10 +165,8 @@ function IconBtn({
       title={label}
       aria-label={label}
       className={cn(
-        'rounded-ios p-1.5 transition-colors disabled:opacity-30',
-        variant === 'danger'
-          ? 'text-text-muted hover:bg-danger/10 hover:text-danger'
-          : 'text-text-muted hover:bg-surface-2 hover:text-text',
+        'vg-sheet__close',
+        variant === 'danger' && 'hover:text-negative',
       )}
     >
       {icon}

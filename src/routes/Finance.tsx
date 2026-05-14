@@ -4,19 +4,14 @@ import { toast } from 'sonner'
 import type { Expense } from '../types/domain'
 import { useEvents } from '../features/events/hooks'
 import { useIngredients } from '../features/ingredients/hooks'
-import {
-  useAllDishIngredients,
-  useDishes,
-} from '../features/dishes/hooks'
-import {
-  useDeleteExpense,
-  useExpenses,
-} from '../features/expenses/hooks'
+import { useAllDishIngredients, useDishes } from '../features/dishes/hooks'
+import { useDeleteExpense, useExpenses } from '../features/expenses/hooks'
 import { ExpenseForm } from '../features/expenses/ExpenseForm'
 import { aggregateShopping } from '../features/shopping/aggregate'
 import { formatDateLong, formatEuro } from '../lib/format'
-import { cn } from '../lib/cn'
-import { Skeleton, SkeletonCard } from '../components/Skeleton'
+import { Button, Card, ScreenHeader } from '../components/ui'
+import { Skeleton } from '../components/Skeleton'
+import { VOGELFREI_SHARE, vogelfreiCutCents } from '../lib/finance'
 
 export function Finance() {
   const eventsQ = useEvents()
@@ -32,18 +27,19 @@ export function Finance() {
   const events = eventsQ.data ?? []
   const expenses = expensesQ.data ?? []
 
-  // CLAUDE.md regel 3:
-  //   Vogelfrei-afrekening
-  //     = (gasten × ticket) − foodcost-totaal − locatie_kosten − overige_kosten
+  // Vogelfrei-afrekening:
+  //   bruto-omzet (gasten × ticket)
+  //   − 40% afdracht aan Vogelfrei
+  //   − foodcost-totaal
+  //   − locatie_kosten (extra per-event kosten naast de afdracht)
+  //   − overige_kosten
   const totalRevenueCents = events.reduce(
     (sum, e) => sum + e.guestCount * e.ticketPriceCents,
     0,
   )
-  const totalLocationCents = events.reduce(
-    (sum, e) => sum + e.locationCostCents,
-    0,
-  )
+  const totalLocationCents = events.reduce((sum, e) => sum + e.locationCostCents, 0)
   const totalGuests = events.reduce((sum, e) => sum + e.guestCount, 0)
+  const vogelfreiAfdrachtCents = vogelfreiCutCents(totalRevenueCents)
 
   const foodcostCents = useMemo(() => {
     const lines = aggregateShopping({
@@ -57,7 +53,13 @@ export function Finance() {
 
   const totalExpensesCents = expenses.reduce((sum, e) => sum + e.amountCents, 0)
   const netCents =
-    totalRevenueCents - foodcostCents - totalLocationCents - totalExpensesCents
+    totalRevenueCents -
+    vogelfreiAfdrachtCents -
+    foodcostCents -
+    totalLocationCents -
+    totalExpensesCents
+  const marginPct = totalRevenueCents > 0 ? (netCents / totalRevenueCents) * 100 : 0
+  const perGuestCents = totalGuests > 0 ? netCents / totalGuests : 0
 
   async function handleDeleteExpense(expense: Expense) {
     if (!window.confirm(`"${expense.description}" verwijderen?`)) return
@@ -76,210 +78,276 @@ export function Finance() {
     expensesQ.isLoading
   ) {
     return (
-      <div className="space-y-6">
-        <div className="card p-5">
-          <Skeleton className="h-7 w-32 mb-4" />
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-full" />
-            <Skeleton className="h-4 w-2/3 ml-4" />
-            <Skeleton className="h-6 w-full" />
-            <Skeleton className="h-6 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        </div>
-        <SkeletonCard lines={3} />
+      <div className="vg-page">
+        <Skeleton className="h-10 w-48 mb-s-7" />
+        <Skeleton className="h-64 w-full" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <section className="card p-5">
-        <h1 className="text-2xl font-semibold tracking-tight">Financieel</h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Vogelfrei-afrekening: (gasten × ticket) − foodcost − locatie − overige.
-          Eén totaal over de hele pop-up-serie.
-        </p>
+    <div className="vg-page flex flex-col gap-s-9">
+      <ScreenHeader
+        eyebrow="Vogelfrei-afrekening"
+        title="Geld"
+        description="Bruto-omzet − 40% Vogelfrei-afdracht − foodcost − locatie − overige. Eén totaal over de pop-up-serie."
+      />
 
-        <dl className="mt-6 space-y-2">
-          <Row label="Bruto-inkomsten" value={totalRevenueCents} positive />
-          {events.map((e) => (
-            <SubRow
-              key={e.id}
-              label={`${formatDateLong(e.eventDate)} — ${e.guestCount} × ${formatEuro(e.ticketPriceCents / 100)}`}
-              value={e.guestCount * e.ticketPriceCents}
-            />
-          ))}
-          <Row label="Foodcost" value={-foodcostCents} negative />
-          <Row label="Locatie­kosten" value={-totalLocationCents} negative />
-          <Row label="Overige uitgaven" value={-totalExpensesCents} negative />
-          <Total label="Netto-resultaat" value={netCents} />
-        </dl>
-      </section>
-
-      <section className="card p-5">
-        <header className="flex items-center justify-between gap-3">
+      {/* Vogelfrei voorwaarden */}
+      <Card>
+        <div className="flex items-baseline justify-between gap-s-4 flex-wrap">
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">
-              Overige uitgaven
-            </h2>
-            <p className="mt-1 text-sm text-text-muted">
-              Bonnen, drank, decor, servicebureau — alles buiten foodcost &
-              locatie.
+            <span className="t-caption t-faded">Vogelfrei-deal</span>
+            <h2 className="t-heading-l mt-s-1">40% van de ticket-omzet</h2>
+            <p className="t-body-s t-soft mt-s-2" style={{ maxWidth: '56ch' }}>
+              Afdracht aan Vogelfrei is een vast aandeel van de bruto ticket-omzet. Locatie-extras
+              (depot, schoonmaak) staan los hieronder als locatiekosten per avond.
             </p>
           </div>
-          <button
-            type="button"
+          <div className="text-right">
+            <span className="t-caption t-faded">Afdracht serie</span>
+            <div className="t-display-m tabular mt-s-2 text-ink">
+              {formatEuro(vogelfreiAfdrachtCents / 100)}
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Main table */}
+      <Card className="p-0 overflow-hidden">
+        <table className="vg-table">
+          <thead>
+            <tr>
+              <th>Avond</th>
+              <th className="vg-table__right">Gasten</th>
+              <th className="vg-table__right">Prijs</th>
+              <th className="vg-table__right">Omzet</th>
+              <th className="vg-table__right">Afdracht 40%</th>
+              <th className="vg-table__right">Locatie</th>
+              <th className="vg-table__right">Resterend</th>
+            </tr>
+          </thead>
+          <tbody>
+            {events.map((e) => {
+              const revenue = e.guestCount * e.ticketPriceCents
+              const afdracht = vogelfreiCutCents(revenue)
+              const rest = revenue - afdracht - e.locationCostCents
+              return (
+                <tr key={e.id}>
+                  <td>
+                    <div className="font-medium text-ink">{e.name}</div>
+                    <div className="t-body-s t-faded mt-s-1">
+                      {formatDateLong(e.eventDate)}
+                    </div>
+                  </td>
+                  <td className="vg-table__right tabular">{e.guestCount}</td>
+                  <td className="vg-table__right tabular">
+                    {formatEuro(e.ticketPriceCents / 100)}
+                  </td>
+                  <td className="vg-table__right tabular vg-table__title">
+                    {formatEuro(revenue / 100)}
+                  </td>
+                  <td className="vg-table__right tabular vg-table__muted">
+                    − {formatEuro(afdracht / 100)}
+                  </td>
+                  <td className="vg-table__right tabular vg-table__muted">
+                    − {formatEuro(e.locationCostCents / 100)}
+                  </td>
+                  <td className="vg-table__right tabular vg-table__title">
+                    {formatEuro(rest / 100)}
+                  </td>
+                </tr>
+              )
+            })}
+            <tr className="vg-table__total">
+              <td>Totaal</td>
+              <td className="vg-table__right tabular">{totalGuests}</td>
+              <td />
+              <td className="vg-table__right tabular">
+                {formatEuro(totalRevenueCents / 100)}
+              </td>
+              <td className="vg-table__right tabular">
+                − {formatEuro(vogelfreiAfdrachtCents / 100)}
+              </td>
+              <td className="vg-table__right tabular">
+                − {formatEuro(totalLocationCents / 100)}
+              </td>
+              <td className="vg-table__right tabular">
+                {formatEuro(
+                  (totalRevenueCents - vogelfreiAfdrachtCents - totalLocationCents) / 100,
+                )}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </Card>
+
+      {/* Summary cards */}
+      <div className="grid gap-s-5 md:grid-cols-3">
+        <SummaryCard
+          label="Per couvert"
+          value={formatEuro(perGuestCents / 100)}
+          sublines={[
+            ['Bruto-omzet', formatEuro(totalRevenueCents / Math.max(totalGuests, 1) / 100)],
+            ['Vogelfrei 40%', `− ${formatEuro(vogelfreiAfdrachtCents / Math.max(totalGuests, 1) / 100)}`],
+            ['Foodcost', `− ${formatEuro(foodcostCents / Math.max(totalGuests, 1) / 100)}`],
+          ]}
+          tone={perGuestCents >= 0 ? 'positive' : 'negative'}
+        />
+        <SummaryCard
+          label="Verhoudingen"
+          value={`${marginPct.toFixed(1)}%`}
+          sublines={[
+            ['Vogelfrei-ratio', `${(VOGELFREI_SHARE * 100).toFixed(0)}%`],
+            ['Foodcost-ratio', `${((foodcostCents / Math.max(totalRevenueCents, 1)) * 100).toFixed(1)}%`],
+            ['Overige', formatEuro(totalExpensesCents / 100)],
+          ]}
+        />
+        <SummaryCard
+          label="Netto-resultaat"
+          value={formatSignedEuro(netCents)}
+          sublines={[
+            ['Vogelfrei-afdracht', `− ${formatEuro(vogelfreiAfdrachtCents / 100)}`],
+            ['Foodcost-totaal', `− ${formatEuro(foodcostCents / 100)}`],
+            ['Locatie + overige', `− ${formatEuro((totalLocationCents + totalExpensesCents) / 100)}`],
+          ]}
+          tone={netCents >= 0 ? 'positive' : 'negative'}
+        />
+      </div>
+
+      {/* Overige uitgaven */}
+      <section className="flex flex-col gap-s-4">
+        <header className="flex items-end justify-between gap-s-4">
+          <div>
+            <span className="t-caption t-faded">Buiten foodcost en locatie</span>
+            <h2 className="t-heading-l mt-s-1">Overige uitgaven</h2>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => {
               setAdding(true)
               setEditing(null)
             }}
-            className="tap inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
           >
-            <Plus className="size-4" aria-hidden /> Nieuw
-          </button>
+            <Plus size={16} aria-hidden /> Nieuwe uitgave
+          </Button>
         </header>
 
         {adding ? (
-          <div className="mt-4 rounded-ios border border-border bg-surface p-4 animate-rise">
-            <ExpenseForm
-              onCancel={() => setAdding(false)}
-              onSaved={() => setAdding(false)}
-            />
-          </div>
+          <Card>
+            <ExpenseForm onCancel={() => setAdding(false)} onSaved={() => setAdding(false)} />
+          </Card>
         ) : null}
-
         {editing ? (
-          <div className="mt-4 rounded-ios border border-border bg-surface p-4 animate-rise">
+          <Card>
             <ExpenseForm
               expense={editing}
               onCancel={() => setEditing(null)}
               onSaved={() => setEditing(null)}
             />
-          </div>
+          </Card>
         ) : null}
 
-        <div className="mt-4 overflow-hidden rounded-ios border border-border">
+        <Card className="p-0 overflow-hidden">
           {expenses.length === 0 ? (
-            <p className="p-4 text-sm text-text-muted">
-              Nog geen overige uitgaven.
-            </p>
+            <p className="p-s-7 t-body-m t-soft">Nog geen overige uitgaven.</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-surface-2 text-left text-xs uppercase tracking-wide text-text-subtle">
+            <table className="vg-table">
+              <thead>
                 <tr>
-                  <th className="px-3 py-2">Categorie</th>
-                  <th className="px-3 py-2">Omschrijving</th>
-                  <th className="px-3 py-2 text-right">Bedrag</th>
-                  <th className="px-3 py-2 text-right">Acties</th>
+                  <th>Categorie</th>
+                  <th>Omschrijving</th>
+                  <th className="vg-table__right">Bedrag</th>
+                  <th className="vg-table__right" style={{ width: 100 }} />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody>
                 {expenses.map((expense) => (
-                  <tr key={expense.id} className="hover:bg-surface-2/40">
-                    <td className="px-3 py-2 font-medium">
-                      {expense.category}
-                    </td>
-                    <td className="px-3 py-2 text-text-muted">
-                      {expense.description}
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums">
+                  <tr key={expense.id}>
+                    <td className="vg-table__title">{expense.category}</td>
+                    <td className="vg-table__muted">{expense.description}</td>
+                    <td className="vg-table__right tabular">
                       {formatEuro(expense.amountCents / 100)}
                     </td>
-                    <td className="px-3 py-2 text-right">
-                      <div className="inline-flex items-center gap-1">
+                    <td className="vg-table__right">
+                      <div className="inline-flex items-center gap-s-1">
                         <button
                           type="button"
+                          className="vg-sheet__close"
                           aria-label="Bewerken"
                           onClick={() => {
                             setEditing(expense)
                             setAdding(false)
                           }}
-                          className="rounded-ios p-1.5 text-text-muted hover:bg-surface-2 hover:text-text"
                         >
-                          <Pencil className="size-4" aria-hidden />
+                          <Pencil size={16} aria-hidden />
                         </button>
                         <button
                           type="button"
+                          className="vg-sheet__close hover:text-negative"
                           aria-label="Verwijderen"
                           onClick={() => void handleDeleteExpense(expense)}
-                          className="rounded-ios p-1.5 text-text-muted hover:bg-danger/10 hover:text-danger"
                         >
-                          <Trash2 className="size-4" aria-hidden />
+                          <Trash2 size={16} aria-hidden />
                         </button>
                       </div>
                     </td>
                   </tr>
                 ))}
-                <tr className="bg-surface-2/40 font-medium">
-                  <td className="px-3 py-2" colSpan={2}>
-                    Totaal
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                <tr className="vg-table__total">
+                  <td colSpan={2}>Totaal</td>
+                  <td className="vg-table__right tabular">
                     {formatEuro(totalExpensesCents / 100)}
                   </td>
-                  <td></td>
+                  <td />
                 </tr>
               </tbody>
             </table>
           )}
-        </div>
+        </Card>
       </section>
     </div>
   )
 }
 
-function Row({
+function SummaryCard({
   label,
   value,
-  positive,
-  negative,
+  sublines,
+  tone,
 }: {
   label: string
-  value: number
-  positive?: boolean
-  negative?: boolean
+  value: string
+  sublines: Array<[string, string]>
+  tone?: 'positive' | 'negative'
 }) {
   return (
-    <div className="flex items-center justify-between border-b border-border py-2 last:border-b-0">
-      <span className="text-sm font-medium text-text">{label}</span>
-      <span
-        className={cn(
-          'text-base font-semibold tabular-nums',
-          positive && 'text-success',
-          negative && 'text-text-muted',
-        )}
+    <Card>
+      <span className="t-caption t-faded">{label}</span>
+      <div
+        className="t-display-l tabular mt-s-3"
+        style={{
+          color:
+            tone === 'positive'
+              ? 'var(--positive)'
+              : tone === 'negative'
+                ? 'var(--negative)'
+                : undefined,
+        }}
       >
-        {formatSignedEuro(value)}
-      </span>
-    </div>
-  )
-}
-
-function SubRow({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex items-center justify-between pl-4 text-xs text-text-subtle">
-      <span>{label}</span>
-      <span className="tabular-nums">{formatEuro(value / 100)}</span>
-    </div>
-  )
-}
-
-function Total({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="mt-2 flex items-center justify-between rounded-ios bg-surface-2 px-3 py-3">
-      <span className="text-sm font-semibold uppercase tracking-wide text-text-subtle">
-        {label}
-      </span>
-      <span
-        className={cn(
-          'text-xl font-semibold tabular-nums',
-          value >= 0 ? 'text-success' : 'text-danger',
-        )}
-      >
-        {formatSignedEuro(value)}
-      </span>
-    </div>
+        {value}
+      </div>
+      <div className="vg-card__sep" />
+      <div className="flex flex-col gap-s-2 t-body-s">
+        {sublines.map(([k, v]) => (
+          <div key={k} className="flex items-baseline justify-between">
+            <span className="t-soft">{k}</span>
+            <span className="tabular text-ink">{v}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
   )
 }
 
