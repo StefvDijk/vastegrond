@@ -1,5 +1,8 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { LogOut } from 'lucide-react'
+import { toast } from 'sonner'
 import { cn } from '../lib/cn'
+import { useAuth } from '../lib/auth'
 
 const tabs = [
   { to: '/overview', label: 'Overzicht' },
@@ -13,6 +16,18 @@ const tabs = [
 ] as const
 
 export function AppShell() {
+  const { user, signOut } = useAuth()
+
+  async function handleSignOut() {
+    try {
+      await signOut()
+      toast.success('Uitgelogd')
+    } catch (error) {
+      console.error('Sign out failed:', error)
+      toast.error('Uitloggen mislukt')
+    }
+  }
+
   return (
     <div className="min-h-full flex flex-col bg-bg">
       <header className="border-b border-border bg-surface/80 backdrop-blur sticky top-0 z-10">
@@ -36,6 +51,15 @@ export function AppShell() {
               </NavLink>
             ))}
           </nav>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            title={user?.email ?? 'Uitloggen'}
+            aria-label="Uitloggen"
+            className="rounded-ios p-2 text-text-muted hover:text-text hover:bg-surface-2 transition-colors"
+          >
+            <LogOut className="size-4" aria-hidden />
+          </button>
         </div>
       </header>
       <main className="flex-1">
