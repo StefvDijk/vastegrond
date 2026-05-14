@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight, ShoppingBasket } from 'lucide-react'
 import { useEvents } from '../features/events/hooks'
+import { Skeleton, SkeletonCard } from '../components/Skeleton'
+import { EmptyState } from '../components/EmptyState'
 import { useIngredients } from '../features/ingredients/hooks'
 import {
   useAllDishIngredients,
@@ -43,7 +45,20 @@ export function Shopping() {
     linksQ.isLoading
 
   if (loading) {
-    return <p className="text-sm text-text-muted">Boodschappen berekenen…</p>
+    return (
+      <div className="space-y-6">
+        <div className="card p-5">
+          <Skeleton className="h-7 w-48 mb-4" />
+          <div className="grid grid-cols-3 gap-4">
+            <Skeleton className="h-12" />
+            <Skeleton className="h-12" />
+            <Skeleton className="h-12" />
+          </div>
+        </div>
+        <SkeletonCard lines={5} />
+        <SkeletonCard lines={4} />
+      </div>
+    )
   }
 
   return (
@@ -69,12 +84,11 @@ export function Shopping() {
       </section>
 
       {lines.length === 0 ? (
-        <section className="card p-5">
-          <p className="text-sm text-text-muted">
-            Nog niets te kopen — voeg ingrediënten toe aan gerechten in de
-            Gerechten-tab.
-          </p>
-        </section>
+        <EmptyState
+          icon={ShoppingBasket}
+          title="Nog niets te kopen"
+          description="Voeg ingrediënten toe aan gerechten in de Gerechten-tab — dan rolt de lijst hier automatisch uit."
+        />
       ) : (
         groups.map((group) => (
           <section key={group.supplier ?? '__none__'} className="card p-5">

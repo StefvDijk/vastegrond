@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Event, Guest, GuestStatus } from '../types/domain'
 import { useEvents } from '../features/events/hooks'
@@ -7,6 +7,8 @@ import { useDeleteGuest, useGuests } from '../features/guests/hooks'
 import { GuestForm } from '../features/guests/GuestForm'
 import { formatDateLong } from '../lib/format'
 import { cn } from '../lib/cn'
+import { Skeleton, SkeletonCard } from '../components/Skeleton'
+import { EmptyState } from '../components/EmptyState'
 
 const STATUS_LABEL: Record<GuestStatus, string> = {
   invited: 'Genodigd',
@@ -74,7 +76,19 @@ export function Guests() {
   }
 
   if (eventsQ.isLoading || guestsQ.isLoading) {
-    return <p className="text-sm text-text-muted">Gasten laden…</p>
+    return (
+      <div className="space-y-6">
+        <div className="card p-5">
+          <Skeleton className="h-7 w-32 mb-4" />
+          <div className="flex gap-2 mb-4">
+            <Skeleton className="h-9 w-32" />
+            <Skeleton className="h-9 w-32" />
+            <Skeleton className="h-9 w-32" />
+          </div>
+        </div>
+        <SkeletonCard lines={4} />
+      </div>
+    )
   }
 
   if (!selectedEvent) {
@@ -107,7 +121,7 @@ export function Guests() {
               setAdding(true)
               setEditing(null)
             }}
-            className="inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
+            className="tap inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
           >
             <Plus className="size-4" aria-hidden /> Nieuwe gast
           </button>
@@ -158,7 +172,7 @@ export function Guests() {
       </section>
 
       {adding ? (
-        <section className="card p-5">
+        <section className="card p-5 animate-rise">
           <h2 className="mb-3 text-lg font-semibold tracking-tight">
             Nieuwe gast — {formatDateLong(selectedEvent.eventDate)}
           </h2>
@@ -171,7 +185,7 @@ export function Guests() {
       ) : null}
 
       {editing ? (
-        <section className="card p-5">
+        <section className="card p-5 animate-rise">
           <h2 className="mb-3 text-lg font-semibold tracking-tight">
             {editing.name} bewerken
           </h2>
@@ -186,9 +200,13 @@ export function Guests() {
 
       <section className="card p-0 overflow-hidden">
         {guestsForEvent.length === 0 ? (
-          <p className="p-5 text-sm text-text-muted">
-            Nog geen gasten voor deze avond.
-          </p>
+          <div className="p-5">
+            <EmptyState
+              icon={Users}
+              title="Nog geen gasten voor deze avond"
+              description="Klik op 'Nieuwe gast' bovenaan om de eerste toe te voegen."
+            />
+          </div>
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-surface-2 text-left text-xs uppercase tracking-wide text-text-subtle">

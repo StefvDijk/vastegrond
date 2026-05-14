@@ -92,14 +92,14 @@ export function Settings() {
               setAdding(true)
               setEditing(null)
             }}
-            className="inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
+            className="tap inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
           >
             <Plus className="size-4" aria-hidden /> Nieuw teamlid
           </button>
         </header>
 
         {adding ? (
-          <div className="mt-4 rounded-ios border border-border bg-surface p-4">
+          <div className="mt-4 rounded-ios border border-border bg-surface p-4 animate-rise">
             <TeamMemberForm
               onCancel={() => setAdding(false)}
               onSaved={() => setAdding(false)}
@@ -108,7 +108,7 @@ export function Settings() {
         ) : null}
 
         {editing ? (
-          <div className="mt-4 rounded-ios border border-border bg-surface p-4">
+          <div className="mt-4 rounded-ios border border-border bg-surface p-4 animate-rise">
             <TeamMemberForm
               member={editing}
               onCancel={() => setEditing(null)}

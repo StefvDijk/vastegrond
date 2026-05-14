@@ -56,7 +56,7 @@ export function Ingredients() {
               setAdding(true)
               setEditing(null)
             }}
-            className="inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
+            className="tap inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
           >
             <Plus className="size-4" aria-hidden /> Nieuw ingrediënt
           </button>
@@ -71,7 +71,7 @@ export function Ingredients() {
       </section>
 
       {adding ? (
-        <section className="card p-5">
+        <section className="card p-5 animate-rise">
           <h2 className="mb-3 text-lg font-semibold tracking-tight">
             Nieuw ingrediënt
           </h2>
@@ -83,7 +83,7 @@ export function Ingredients() {
       ) : null}
 
       {editing ? (
-        <section className="card p-5">
+        <section className="card p-5 animate-rise">
           <h2 className="mb-3 text-lg font-semibold tracking-tight">
             {editing.name} bewerken
           </h2>

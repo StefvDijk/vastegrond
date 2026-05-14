@@ -16,6 +16,7 @@ import { ExpenseForm } from '../features/expenses/ExpenseForm'
 import { aggregateShopping } from '../features/shopping/aggregate'
 import { formatDateLong, formatEuro } from '../lib/format'
 import { cn } from '../lib/cn'
+import { Skeleton, SkeletonCard } from '../components/Skeleton'
 
 export function Finance() {
   const eventsQ = useEvents()
@@ -74,7 +75,21 @@ export function Finance() {
     dishesQ.isLoading ||
     expensesQ.isLoading
   ) {
-    return <p className="text-sm text-text-muted">Cijfers berekenen…</p>
+    return (
+      <div className="space-y-6">
+        <div className="card p-5">
+          <Skeleton className="h-7 w-32 mb-4" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-4 w-2/3 ml-4" />
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        </div>
+        <SkeletonCard lines={3} />
+      </div>
+    )
   }
 
   return (
@@ -119,14 +134,14 @@ export function Finance() {
               setAdding(true)
               setEditing(null)
             }}
-            className="inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
+            className="tap inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
           >
             <Plus className="size-4" aria-hidden /> Nieuw
           </button>
         </header>
 
         {adding ? (
-          <div className="mt-4 rounded-ios border border-border bg-surface p-4">
+          <div className="mt-4 rounded-ios border border-border bg-surface p-4 animate-rise">
             <ExpenseForm
               onCancel={() => setAdding(false)}
               onSaved={() => setAdding(false)}
@@ -135,7 +150,7 @@ export function Finance() {
         ) : null}
 
         {editing ? (
-          <div className="mt-4 rounded-ios border border-border bg-surface p-4">
+          <div className="mt-4 rounded-ios border border-border bg-surface p-4 animate-rise">
             <ExpenseForm
               expense={editing}
               onCancel={() => setEditing(null)}

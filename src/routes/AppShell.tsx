@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { LogOut } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '../lib/cn'
@@ -17,6 +17,7 @@ const tabs = [
 
 export function AppShell() {
   const { user, signOut } = useAuth()
+  const location = useLocation()
 
   async function handleSignOut() {
     try {
@@ -30,19 +31,19 @@ export function AppShell() {
 
   return (
     <div className="min-h-full flex flex-col bg-bg">
-      <header className="border-b border-border bg-surface/80 backdrop-blur sticky top-0 z-10">
+      <header className="sticky top-0 z-10 border-b border-border/70 bg-surface/75 backdrop-blur-xl supports-[backdrop-filter]:bg-surface/60">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4">
           <div className="font-semibold tracking-tight">Vaste Grond</div>
-          <nav className="flex gap-1 overflow-x-auto -mb-px ml-auto">
+          <nav className="flex gap-0.5 overflow-x-auto -mx-2 px-2 ml-auto">
             {tabs.map((tab) => (
               <NavLink
                 key={tab.to}
                 to={tab.to}
                 className={({ isActive }) =>
                   cn(
-                    'px-3 py-1.5 rounded-ios text-sm font-medium transition-colors whitespace-nowrap',
+                    'tap whitespace-nowrap rounded-ios px-3 py-1.5 text-sm font-medium transition-colors',
                     isActive
-                      ? 'bg-accent text-accent-fg'
+                      ? 'bg-accent text-accent-fg shadow-sm'
                       : 'text-text-muted hover:text-text hover:bg-surface-2',
                   )
                 }
@@ -56,13 +57,13 @@ export function AppShell() {
             onClick={handleSignOut}
             title={user?.email ?? 'Uitloggen'}
             aria-label="Uitloggen"
-            className="rounded-ios p-2 text-text-muted hover:text-text hover:bg-surface-2 transition-colors"
+            className="tap rounded-ios p-2 text-text-muted hover:text-text hover:bg-surface-2 transition-colors"
           >
             <LogOut className="size-4" aria-hidden />
           </button>
         </div>
       </header>
-      <main className="flex-1">
+      <main key={location.pathname} className="flex-1 animate-rise">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <Outlet />
         </div>

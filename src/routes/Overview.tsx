@@ -1,13 +1,30 @@
+import { CalendarRange } from 'lucide-react'
 import { useEvents } from '../features/events/hooks'
 import { EventCard } from '../features/events/EventCard'
 import { formatEuro } from '../lib/format'
+import { Skeleton, SkeletonCard } from '../components/Skeleton'
+import { EmptyState } from '../components/EmptyState'
 
 export function Overview() {
   const { data: events, isLoading, isError, error } = useEvents()
 
   if (isLoading) {
     return (
-      <div className="text-sm text-text-muted">Events laden…</div>
+      <div className="space-y-6">
+        <div className="card p-5">
+          <Skeleton className="h-7 w-32 mb-4" />
+          <div className="grid grid-cols-3 gap-4">
+            <Skeleton className="h-12" />
+            <Skeleton className="h-12" />
+            <Skeleton className="h-12" />
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      </div>
     )
   }
 
@@ -26,12 +43,11 @@ export function Overview() {
 
   if (!events || events.length === 0) {
     return (
-      <div className="card p-5">
-        <h2 className="text-lg font-semibold tracking-tight">Geen events</h2>
-        <p className="mt-2 text-sm text-text-muted">
-          Er staan nog geen events in de database.
-        </p>
-      </div>
+      <EmptyState
+        icon={CalendarRange}
+        title="Geen events"
+        description="Er staan nog geen pop-up-avonden in de database."
+      />
     )
   }
 

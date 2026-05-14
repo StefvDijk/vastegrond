@@ -69,7 +69,7 @@ export function CourseList() {
         <button
           type="submit"
           disabled={createMutation.isPending || !draft.trim()}
-          className="inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="tap inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           <Plus className="size-4" aria-hidden /> Voeg toe
         </button>

@@ -144,7 +144,7 @@ export function DishIngredientsEditor({
         <button
           type="submit"
           disabled={upsert.isPending || availableForAdd.length === 0}
-          className="inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg hover:opacity-90 disabled:opacity-50"
+          className="tap inline-flex items-center gap-1 rounded-ios bg-accent px-3 py-2 text-sm font-medium text-accent-fg hover:opacity-90 disabled:opacity-50"
         >
           <Plus className="size-4" aria-hidden /> Voeg toe
         </button>
