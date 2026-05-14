@@ -6,6 +6,7 @@ import { AuthProvider } from './lib/auth'
 import { AppShell } from './routes/AppShell'
 import { AuthGuard } from './routes/AuthGuard'
 import { Placeholder } from './routes/Placeholder'
+import { Overview } from './routes/Overview'
 import { Login } from './routes/Login'
 
 function App() {
@@ -18,7 +19,7 @@ function App() {
             <Route element={<AuthGuard />}>
               <Route element={<AppShell />}>
                 <Route index element={<Navigate to="/overview" replace />} />
-                <Route path="/overview" element={<Placeholder title="Overzicht" />} />
+                <Route path="/overview" element={<Overview />} />
                 <Route path="/menu" element={<Placeholder title="Menu" />} />
                 <Route path="/dishes" element={<Placeholder title="Gerechten" />} />
                 <Route
