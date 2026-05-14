@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* iOS-inspired light tokens */
+    --bg: 220 17% 98%;
+    --surface: 0 0% 100%;
+    --surface-2: 220 14% 96%;
+    --border: 220 13% 91%;
+    --text: 222 25% 11%;
+    --text-muted: 220 9% 46%;
+    --text-subtle: 220 9% 64%;
+    --accent: 211 100% 50%;
+    --accent-fg: 0 0% 100%;
+    --danger: 0 72% 51%;
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: 222 25% 7%;
+      --surface: 222 22% 11%;
+      --surface-2: 222 18% 15%;
+      --border: 222 14% 22%;
+      --text: 220 14% 96%;
+      --text-muted: 220 9% 70%;
+      --text-subtle: 220 9% 55%;
+      --accent: 211 100% 60%;
+      --accent-fg: 0 0% 100%;
+    }
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-bg text-text antialiased;
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface border border-border rounded-ios shadow-card;
+  }
+}
