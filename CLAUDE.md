@@ -64,16 +64,16 @@ Kritische berekeningen die in code-comments uitgelegd moeten staan:
 ## Status
 
 - [x] Fase 0: Vite + TS scaffolding, Tailwind, project structuur, env, supabase init, git init
-- [ ] Fase 1: Auth (magic link) + AuthGuard + lege AppShell live
-- [ ] Fase 2: Eerste migratie, types, read-only data layer
-- [ ] Fase 3: Event-overzicht (lezen + bewerken)
-- [ ] Fase 4: Menu/gangen
-- [ ] Fase 5: Gerechten + ingredienten + foodcost
-- [ ] Fase 6: Boodschappenlijst
-- [ ] Fase 7: Gasten + financieel
-- [ ] Fase 8: Settings + team
-- [ ] Fase 9: iOS-polish (animaties, haptiek-lookalike, refinement)
-- [ ] Fase 10: Cloudflare Pages deploy + remote Supabase
+- [x] Fase 1: Auth (magic link) + AuthGuard + lege AppShell live
+- [x] Fase 2: Eerste migratie, types, read-only data layer
+- [x] Fase 3: Event-overzicht (lezen + bewerken)
+- [x] Fase 4: Menu/gangen (gedeeld over alle avonden, zie migratie 0005)
+- [x] Fase 5: Gerechten + ingredienten + foodcost
+- [x] Fase 6: Boodschappenlijst
+- [x] Fase 7: Gasten + financieel (Vogelfrei-afrekening)
+- [x] Fase 8: Settings + team
+- [x] Fase 9: iOS-polish (skeleton, empty-state, tap-feedback, animate-rise)
+- [x] Fase 10: Cloudflare Workers deploy (Workers + static assets, niet klassieke Pages) — live op vastegrond.stefvandijk10.workers.dev
 
 ## Deploy (Cloudflare Pages)
 
