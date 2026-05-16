@@ -8,8 +8,11 @@ import { DishCard } from '../features/dishes/DishCard'
 import { DishForm } from '../features/dishes/DishForm'
 import { formatEuro } from '../lib/format'
 import { recipeCostCents } from '../features/dishes/foodcost'
-import { Button, Card, ScreenHeader } from '../components/ui'
+import { Button, Card } from '../components/ui'
 import { Skeleton } from '../components/Skeleton'
+import { cn } from '../lib/cn'
+
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
 
 export function Dishes() {
   const coursesQ = useCourses()
@@ -63,45 +66,65 @@ export function Dishes() {
   if (courses.length === 0) {
     return (
       <div className="vg-page">
-        <ScreenHeader title="Recepten" description="Voeg eerst gangen toe in de Menu-tab." />
+        <header>
+          <span className="t-caption t-faded">Recepten</span>
+          <h1 className="t-display-m mt-s-2">Recepten</h1>
+        </header>
+        <p className="t-body-m t-soft mt-s-6">Voeg eerst gangen toe in de Menu-tab.</p>
       </div>
     )
   }
 
   return (
-    <div className="vg-page flex flex-col gap-s-9">
-      <ScreenHeader
-        eyebrow="Recepten"
-        title="Recepten"
-        description="Eén menu voor alle avonden. Foodcost wordt live berekend op basis van de ingrediënten-bibliotheek."
-      />
-
-      <Card>
-        <div className="grid gap-s-7 md:grid-cols-3">
-          <Stat label="Gerechten" value={String(totalDishes)} />
-          <Stat label="Recept-totaal" value={formatEuro(totalRecipeCents / 100)} />
-          <Stat
-            label="Menu per persoon"
-            value={formatEuro(totalPerPortionCents / 100)}
-            accent
-          />
+    <div className="vg-page flex flex-col gap-s-7">
+      {/* Header */}
+      <header className="flex flex-col gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
+        <div>
+          <span className="t-caption t-faded">Foodcost-bibliotheek</span>
+          <h1 className="t-display-m mt-s-2">Recepten</h1>
+          <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
+            Eén menu voor alle avonden. Foodcost wordt live berekend uit de ingrediënten-bibliotheek.
+          </p>
         </div>
-      </Card>
+      </header>
 
-      {courses.map((course) => {
+      {/* Stat cells */}
+      <div className="grid grid-cols-3 gap-s-3 md:gap-s-6">
+        <Stat label="Gerechten" value={String(totalDishes)} />
+        <Stat label="Recept-totaal" value={formatEuro(totalRecipeCents / 100)} />
+        <Stat
+          label="Menu per gast"
+          value={formatEuro(totalPerPortionCents / 100)}
+          accent
+        />
+      </div>
+
+      {/* Per course sections */}
+      {courses.map((course, index) => {
         const dishes = dishesByCourse.get(course.id) ?? []
         return (
-          <section key={course.id} className="flex flex-col gap-s-4">
-            <header className="flex items-end justify-between gap-s-4">
-              <div>
-                <span className="t-caption t-faded">Gang {course.position + 1}</span>
-                <h2 className="t-heading-l mt-s-1">
-                  {course.name}{' '}
-                  <span className="t-body-m t-faded font-normal ml-s-2">
-                    ({dishes.length} {dishes.length === 1 ? 'gerecht' : 'gerechten'})
-                  </span>
-                </h2>
-              </div>
+          <section key={course.id} className="flex flex-col gap-s-3">
+            <header
+              className={cn(
+                'flex items-baseline gap-s-4 pt-s-4',
+                index > 0 && 'border-t border-line',
+              )}
+            >
+              <span
+                className="font-mono t-faded tabular-nums shrink-0"
+                style={{ fontSize: 11, letterSpacing: '0.06em' }}
+              >
+                {ROMAN[index] ?? String(index + 1)}
+              </span>
+              <h2
+                className="flex-1 min-w-0"
+                style={{ fontSize: 22, lineHeight: 1.2, letterSpacing: '-0.022em', fontWeight: 600 }}
+              >
+                {course.name}
+              </h2>
+              <span className="t-mono-s t-faded shrink-0">
+                {dishes.length} {dishes.length === 1 ? 'gerecht' : 'gerechten'}
+              </span>
               <Button
                 variant="secondary"
                 size="sm"
@@ -109,13 +132,13 @@ export function Dishes() {
                   setAdding((current) => (current === course.id ? null : course.id))
                 }
               >
-                <Plus size={16} aria-hidden /> Gerecht
+                <Plus size={14} aria-hidden /> Gerecht
               </Button>
             </header>
 
             {adding === course.id ? (
               <Card>
-                <h3 className="t-heading-m mb-s-4">Nieuw gerecht in {course.name}</h3>
+                <h3 className="t-title-m mb-s-4">Nieuw gerecht in {course.name}</h3>
                 <DishForm
                   course={course}
                   onCancel={() => setAdding(null)}
@@ -124,11 +147,11 @@ export function Dishes() {
               </Card>
             ) : null}
 
-            <div className="flex flex-col gap-s-3">
-              {dishes.length === 0 ? (
-                <p className="vg-empty">Nog geen gerechten voor deze gang.</p>
-              ) : (
-                dishes.map((dish) => (
+            {dishes.length === 0 ? (
+              <p className="t-body-s t-ghost pl-s-7">Nog geen gerechten.</p>
+            ) : (
+              <div className="flex flex-col gap-s-3">
+                {dishes.map((dish) => (
                   <DishCard
                     key={dish.id}
                     course={course}
@@ -136,9 +159,9 @@ export function Dishes() {
                     links={linksByDish[dish.id] ?? []}
                     ingredients={ingredients}
                   />
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </section>
         )
       })}
@@ -148,12 +171,19 @@ export function Dishes() {
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div>
-      <span className="t-caption t-faded">{label}</span>
-      <div className={accent ? 't-display-m tabular text-accent mt-s-2' : 't-display-m tabular mt-s-2'}>
+    <div className="vg-card vg-card--bordered" style={{ padding: 'var(--s-5)' }}>
+      <div className="t-caption t-faded">{label}</div>
+      <div
+        className="font-mono mt-s-2 tabular-nums"
+        style={{
+          fontSize: 22,
+          lineHeight: 1,
+          letterSpacing: '-0.012em',
+          color: accent ? 'var(--accent)' : 'var(--ink)',
+        }}
+      >
         {value}
       </div>
     </div>
   )
 }
-

@@ -11,8 +11,9 @@ import {
   type ShoppingLine,
 } from '../features/shopping/aggregate'
 import { formatEuro, formatNumber } from '../lib/format'
-import { Card, Checkbox, ScreenHeader } from '../components/ui'
 import { cn } from '../lib/cn'
+
+type Filter = 'all' | 'open' | 'done'
 
 export function Shopping() {
   const eventsQ = useEvents()
@@ -21,24 +22,32 @@ export function Shopping() {
   const linksQ = useAllDishIngredients()
 
   const [checked, setChecked] = useState<Record<string, boolean>>({})
+  const [filter, setFilter] = useState<Filter>('all')
 
   const totalGuests = useMemo(
     () => (eventsQ.data ?? []).reduce((sum, e) => sum + e.guestCount, 0),
     [eventsQ.data],
   )
 
-  const lines = useMemo(() => {
-    return aggregateShopping({
-      ingredients: ingredientsQ.data ?? [],
-      dishes: dishesQ.data ?? [],
-      linksByDish: linksQ.data ?? {},
-      totalGuests,
-    })
-  }, [ingredientsQ.data, dishesQ.data, linksQ.data, totalGuests])
+  const lines = useMemo(
+    () =>
+      aggregateShopping({
+        ingredients: ingredientsQ.data ?? [],
+        dishes: dishesQ.data ?? [],
+        linksByDish: linksQ.data ?? {},
+        totalGuests,
+      }),
+    [ingredientsQ.data, dishesQ.data, linksQ.data, totalGuests],
+  )
 
   const groups = useMemo(() => groupBySupplier(lines), [lines])
   const grandTotalCents = lines.reduce((sum, l) => sum + l.totalCostCents, 0)
-  const checkedCount = Object.values(checked).filter(Boolean).length
+  const doneCount = lines.filter((l) => checked[l.ingredient.id]).length
+  const doneCostCents = lines.reduce(
+    (sum, l) => (checked[l.ingredient.id] ? sum + l.totalCostCents : sum),
+    0,
+  )
+  const progress = lines.length === 0 ? 0 : doneCount / lines.length
 
   const loading =
     eventsQ.isLoading || ingredientsQ.isLoading || dishesQ.isLoading || linksQ.isLoading
@@ -53,26 +62,66 @@ export function Shopping() {
     )
   }
 
-  return (
-    <div className="vg-page flex flex-col gap-s-9">
-      <ScreenHeader
-        eyebrow="Aggregatie"
-        title="Boodschappen"
-        description="Aggregatie over alle gerechten × totaal gasten van de 3 avonden. Vink af terwijl je inkoopt."
-      />
+  function toggle(id: string) {
+    setChecked((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
 
-      <Card className="p-0">
-        <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-line">
-          <Stat label="Regels" value={String(lines.length)} />
-          <Stat label="Totaal gasten" value={String(totalGuests)} />
-          <Stat label="Afgevinkt" value={`${checkedCount} / ${lines.length}`} />
-          <Stat
-            label="Inkoop"
-            value={formatEuro(grandTotalCents / 100)}
-            accent
-          />
+  function filterLines(supplierLines: ShoppingLine[]): ShoppingLine[] {
+    if (filter === 'all') return supplierLines
+    if (filter === 'open') return supplierLines.filter((l) => !checked[l.ingredient.id])
+    return supplierLines.filter((l) => checked[l.ingredient.id])
+  }
+
+  return (
+    <div className="vg-page flex flex-col gap-s-7">
+      {/* Header */}
+      <header className="flex flex-col gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
+        <div>
+          <span className="t-caption t-faded">
+            Inkoop · {lines.length} {lines.length === 1 ? 'post' : 'posten'} ·{' '}
+            {groups.length} {groups.length === 1 ? 'leverancier' : 'leveranciers'}
+          </span>
+          <h1 className="t-display-m mt-s-2">Boodschappen</h1>
         </div>
-      </Card>
+        <div className="flex items-center gap-s-2">
+          <Chip on={filter === 'all'} onClick={() => setFilter('all')}>
+            Alles
+          </Chip>
+          <Chip on={filter === 'open'} onClick={() => setFilter('open')}>
+            Open
+          </Chip>
+          <Chip on={filter === 'done'} onClick={() => setFilter('done')}>
+            Afgevinkt
+          </Chip>
+        </div>
+      </header>
+
+      {/* Voortgangs-summary */}
+      <section className="flex items-baseline justify-between gap-s-4">
+        <div>
+          <div className="font-mono tabular-nums" style={{ fontSize: 28, lineHeight: 1, letterSpacing: '-0.012em' }}>
+            {doneCount}
+            <span className="t-ghost"> / {lines.length}</span>
+          </div>
+          <div className="t-mono-s t-faded mt-s-2">
+            {formatEuro(doneCostCents / 100)} van {formatEuro(grandTotalCents / 100)}
+          </div>
+        </div>
+        <div className="t-mono-s t-faded">{Math.round(progress * 100)}%</div>
+      </section>
+      <div
+        className="h-[3px] rounded-pill overflow-hidden"
+        style={{ background: 'var(--paper-deep)', marginTop: 'calc(-1 * var(--s-3))' }}
+        aria-hidden
+      >
+        <div
+          className="h-full rounded-pill transition-all duration-base ease-out"
+          style={{
+            width: `${progress * 100}%`,
+            background: 'var(--accent)',
+          }}
+        />
+      </div>
 
       {lines.length === 0 ? (
         <EmptyState
@@ -81,78 +130,115 @@ export function Shopping() {
           description="Voeg ingrediënten toe aan gerechten in de Recepten-tab — dan rolt de lijst hier automatisch uit."
         />
       ) : (
-        <div className="flex flex-col gap-s-5">
-          {groups.map((group) => (
-            <SupplierCard
-              key={group.supplier ?? '__none__'}
-              supplier={group.supplier}
-              subtotalCents={group.subtotalCents}
-              lines={group.lines}
-              checked={checked}
-              onToggle={(id) =>
-                setChecked((prev) => ({ ...prev, [id]: !prev[id] }))
-              }
-            />
-          ))}
+        <div className="flex flex-col">
+          {groups.map((group) => {
+            const visibleLines = filterLines(group.lines)
+            if (visibleLines.length === 0) return null
+            return (
+              <SupplierGroup
+                key={group.supplier ?? '__none__'}
+                supplier={group.supplier}
+                subtotalCents={group.subtotalCents}
+                lineCount={group.lines.length}
+                lines={visibleLines}
+                checked={checked}
+                onToggle={toggle}
+              />
+            )
+          })}
         </div>
       )}
     </div>
   )
 }
 
-function SupplierCard({
+function SupplierGroup({
   supplier,
   subtotalCents,
+  lineCount,
   lines,
   checked,
   onToggle,
 }: {
   supplier: string | null
   subtotalCents: number
+  lineCount: number
   lines: ShoppingLine[]
   checked: Record<string, boolean>
   onToggle: (id: string) => void
 }) {
   return (
-    <Card className="p-0 overflow-hidden">
-      <div className="flex items-baseline justify-between p-s-7">
-        <h2 className="t-heading-l">{supplier ?? 'Geen leverancier'}</h2>
-        <span className="t-body-m t-soft tabular">{formatEuro(subtotalCents / 100)}</span>
-      </div>
-      <ul className="list-none m-0 p-0" style={{ borderTop: '1px solid var(--line)' }}>
+    <section className="mt-s-6 first:mt-s-2">
+      <header className="flex items-baseline justify-between px-s-1 pb-s-3">
+        <h2 style={{ fontSize: 18, letterSpacing: '-0.018em', fontWeight: 600 }}>
+          {supplier ?? 'Geen leverancier'}
+        </h2>
+        <div className="flex items-baseline gap-s-3">
+          <span className="t-mono-s t-faded">
+            {lineCount} {lineCount === 1 ? 'post' : 'posten'}
+          </span>
+          <span className="t-mono-m tabular-nums" style={{ color: 'var(--ink-soft)' }}>
+            {formatEuro(subtotalCents / 100)}
+          </span>
+        </div>
+      </header>
+      <div className="vg-list">
         {lines.map((line) => {
           const id = line.ingredient.id
           const done = Boolean(checked[id])
           return (
-            <li
+            <button
               key={id}
-              className={cn('vg-list__row', done && 'vg-list__row--done')}
-              style={{ gridTemplateColumns: '24px 1fr 140px 120px', cursor: 'pointer' }}
+              type="button"
               onClick={() => onToggle(id)}
+              className={cn(
+                'vg-list__row vg-list__row--hover w-full text-left',
+                done && 'vg-list__row--done',
+              )}
             >
-              <Checkbox checked={done} onChange={() => onToggle(id)} onClick={(e) => e.stopPropagation()} />
-              <span className="vg-list__title">{line.ingredient.name}</span>
-              <span className="tabular text-ink-soft text-right">
+              <label className="vg-check" onClick={(e) => e.stopPropagation()}>
+                <input
+                  type="checkbox"
+                  checked={done}
+                  onChange={() => onToggle(id)}
+                  aria-label={`${line.ingredient.name} afvinken`}
+                />
+                <span className="vg-check__box" aria-hidden />
+              </label>
+              <div className="vg-list__content">
+                <div className="vg-list__title">{line.ingredient.name}</div>
+              </div>
+              <div className="t-mono-s t-faded tabular-nums shrink-0 text-right" style={{ width: 80 }}>
                 {formatNumber(line.totalAmount)} {line.ingredient.unit}
-              </span>
-              <span className="tabular text-ink text-right font-medium">
+              </div>
+              <div className="vg-list__value shrink-0 text-right" style={{ minWidth: 70 }}>
                 {formatEuro(line.totalCostCents / 100)}
-              </span>
-            </li>
+              </div>
+            </button>
           )
         })}
-      </ul>
-    </Card>
+      </div>
+    </section>
   )
 }
 
-function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+function Chip({
+  on,
+  onClick,
+  children,
+}: {
+  on: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
   return (
-    <div className="p-s-6">
-      <span className="t-caption t-faded">{label}</span>
-      <div className={accent ? 't-heading-l tabular text-accent mt-s-2' : 't-heading-l tabular mt-s-2'}>
-        {value}
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn('vg-chip', on && 'vg-chip--on')}
+      aria-pressed={on}
+    >
+      {children}
+    </button>
   )
 }

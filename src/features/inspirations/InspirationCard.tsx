@@ -1,6 +1,5 @@
 import { ExternalLink } from 'lucide-react'
 import type { Inspiration } from '../../types/domain'
-import { Badge, Card } from '../../components/ui'
 import { useInspirationImageUrl } from './hooks'
 
 type InspirationCardProps = {
@@ -20,9 +19,14 @@ export function InspirationCard({
   const host = inspiration.url ? safeHost(inspiration.url) : null
 
   return (
-    <Card className="p-0 overflow-hidden cursor-pointer hover:bg-paper-deep transition" onClick={onClick}>
+    <button
+      type="button"
+      onClick={onClick}
+      className="vg-card vg-card--bordered text-left hover:bg-paper-deep transition-colors"
+      style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}
+    >
       {inspiration.imagePath ? (
-        <div className="aspect-[4/3] w-full bg-paper-deep">
+        <div className="aspect-[4/3] w-full" style={{ background: 'var(--paper-deep)' }}>
           {imageUrlQ.data ? (
             <img
               src={imageUrlQ.data}
@@ -35,7 +39,10 @@ export function InspirationCard({
       ) : null}
       <div className="p-s-5 flex flex-col gap-s-3">
         <div>
-          <h3 className="t-heading-m line-clamp-1">
+          <h3
+            className="line-clamp-2"
+            style={{ fontSize: 18, lineHeight: 1.25, letterSpacing: '-0.018em', fontWeight: 600 }}
+          >
             {inspiration.title || (host ?? 'Inspiratie')}
           </h3>
           {host ? (
@@ -44,7 +51,7 @@ export function InspirationCard({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center gap-s-1 t-caption t-faded hover:text-ink"
+              className="inline-flex items-center gap-s-1 t-mono-s t-faded hover:text-ink mt-s-1"
             >
               <ExternalLink size={12} aria-hidden />
               {host}
@@ -58,17 +65,23 @@ export function InspirationCard({
         ) : null}
         {(inspiration.tags.length > 0 || dishName || courseName) && (
           <div className="flex flex-wrap gap-s-2">
-            {courseName ? <Badge variant="outline">{courseName}</Badge> : null}
-            {dishName ? <Badge variant="neutral">{dishName}</Badge> : null}
+            {courseName ? (
+              <span className="t-mono-s t-faded">{courseName}</span>
+            ) : null}
+            {dishName ? (
+              <span className="t-mono-s" style={{ color: 'var(--ink-soft)' }}>
+                {dishName}
+              </span>
+            ) : null}
             {inspiration.tags.map((t) => (
-              <Badge key={t} variant="outline">
+              <span key={t} className="t-mono-s t-accent">
                 #{t}
-              </Badge>
+              </span>
             ))}
           </div>
         )}
       </div>
-    </Card>
+    </button>
   )
 }
 

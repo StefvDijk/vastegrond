@@ -2,14 +2,7 @@ import { useMemo, useState } from 'react'
 import { Plus, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Inspiration } from '../types/domain'
-import {
-  Button,
-  Card,
-  Counter,
-  ScreenHeader,
-  Search,
-  Sheet,
-} from '../components/ui'
+import { Button, Search, Sheet } from '../components/ui'
 import { EmptyState } from '../components/EmptyState'
 import { Skeleton } from '../components/Skeleton'
 import {
@@ -69,17 +62,19 @@ export function Inspiration() {
   const total = data?.length ?? 0
 
   return (
-    <div className="vg-page flex flex-col gap-s-9">
-      <ScreenHeader
-        eyebrow="Moodboard"
-        title="Inspiratie"
-        description="Links, recepten, screenshots, foto's — alles dat de avonden vormgeeft."
-        actions={
-          <Button variant="accent" onClick={() => setAdding(true)}>
-            <Plus size={16} aria-hidden /> Inspiratie
-          </Button>
-        }
-      />
+    <div className="vg-page flex flex-col gap-s-7">
+      <header className="flex flex-col gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
+        <div>
+          <span className="t-caption t-faded">Moodboard</span>
+          <h1 className="t-display-m mt-s-2">Inspiratie</h1>
+          <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
+            Links, recepten, screenshots, foto's — alles dat de avonden vormgeeft.
+          </p>
+        </div>
+        <Button variant="accent" onClick={() => setAdding(true)}>
+          <Plus size={16} aria-hidden /> Inspiratie
+        </Button>
+      </header>
 
       <div className="flex items-center gap-s-4 flex-wrap">
         <div className="flex-1 max-w-[420px]">
@@ -89,9 +84,9 @@ export function Inspiration() {
             onChange={(e) => setFilter(e.target.value)}
           />
         </div>
-        <Counter>
+        <span className="t-mono-s t-faded tabular-nums">
           {filtered.length} van {total}
-        </Counter>
+        </span>
       </div>
 
       {isLoading ? (
@@ -101,11 +96,11 @@ export function Inspiration() {
           <Skeleton className="h-72" />
         </div>
       ) : isError ? (
-        <Card>
+        <div className="vg-card vg-card--bordered">
           <p className="t-body-m text-negative">
             Kon inspiratie niet laden — {error instanceof Error ? error.message : 'fout'}
           </p>
-        </Card>
+        </div>
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Sparkles}

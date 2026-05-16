@@ -8,10 +8,18 @@ import { useAllDishIngredients, useDishes } from '../features/dishes/hooks'
 import { useDeleteExpense, useExpenses } from '../features/expenses/hooks'
 import { ExpenseForm } from '../features/expenses/ExpenseForm'
 import { aggregateShopping } from '../features/shopping/aggregate'
-import { formatDateLong, formatEuro } from '../lib/format'
-import { Button, Card, ScreenHeader } from '../components/ui'
+import { formatEuro } from '../lib/format'
+import { Button, Card } from '../components/ui'
 import { Skeleton } from '../components/Skeleton'
 import { VOGELFREI_SHARE, vogelfreiCutCents } from '../lib/finance'
+import { cn } from '../lib/cn'
+
+type EventSelection = 'all' | string
+
+function formatSignedEuro(cents: number): string {
+  const sign = cents < 0 ? '−' : ''
+  return `${sign}${formatEuro(Math.abs(cents) / 100)}`
+}
 
 export function Finance() {
   const eventsQ = useEvents()
@@ -23,24 +31,32 @@ export function Finance() {
 
   const [adding, setAdding] = useState(false)
   const [editing, setEditing] = useState<Expense | null>(null)
+  const [selection, setSelection] = useState<EventSelection>('all')
 
-  const events = eventsQ.data ?? []
+  const allEvents = useMemo(() => {
+    const list = eventsQ.data ?? []
+    return [...list].sort((a, b) => a.eventDate.localeCompare(b.eventDate))
+  }, [eventsQ.data])
+
   const expenses = expensesQ.data ?? []
 
-  // Vogelfrei-afrekening:
-  //   bruto-omzet (gasten × ticket)
-  //   − 40% afdracht aan Vogelfrei
-  //   − foodcost-totaal
-  //   − locatie_kosten (extra per-event kosten naast de afdracht)
-  //   − overige_kosten
-  const totalRevenueCents = events.reduce(
+  const selectedEvents = useMemo(
+    () => (selection === 'all' ? allEvents : allEvents.filter((e) => e.id === selection)),
+    [allEvents, selection],
+  )
+
+  const totalRevenueCents = selectedEvents.reduce(
     (sum, e) => sum + e.guestCount * e.ticketPriceCents,
     0,
   )
-  const totalLocationCents = events.reduce((sum, e) => sum + e.locationCostCents, 0)
-  const totalGuests = events.reduce((sum, e) => sum + e.guestCount, 0)
+  const totalLocationCents = selectedEvents.reduce(
+    (sum, e) => sum + e.locationCostCents,
+    0,
+  )
+  const totalGuests = selectedEvents.reduce((sum, e) => sum + e.guestCount, 0)
   const vogelfreiAfdrachtCents = vogelfreiCutCents(totalRevenueCents)
 
+  // Foodcost: aggregateShopping rekent per guest × ingredient hoeveelheid; selectie via totalGuests.
   const foodcostCents = useMemo(() => {
     const lines = aggregateShopping({
       ingredients: ingredientsQ.data ?? [],
@@ -51,13 +67,14 @@ export function Finance() {
     return lines.reduce((sum, l) => sum + l.totalCostCents, 0)
   }, [ingredientsQ.data, dishesQ.data, linksQ.data, totalGuests])
 
-  const totalExpensesCents = expenses.reduce((sum, e) => sum + e.amountCents, 0)
+  // Overige uitgaven: niet event-specifiek in huidig schema; tonen volledige bedrag, alleen bij 'all'.
+  const overheadCents = selection === 'all' ? expenses.reduce((s, e) => s + e.amountCents, 0) : 0
   const netCents =
     totalRevenueCents -
     vogelfreiAfdrachtCents -
     foodcostCents -
     totalLocationCents -
-    totalExpensesCents
+    overheadCents
   const marginPct = totalRevenueCents > 0 ? (netCents / totalRevenueCents) * 100 : 0
   const perGuestCents = totalGuests > 0 ? netCents / totalGuests : 0
 
@@ -85,142 +102,262 @@ export function Finance() {
     )
   }
 
+  // Per-event breakdown for desktop table.
+  const breakdown = allEvents.map((e, idx) => {
+    const revenue = e.guestCount * e.ticketPriceCents
+    const afdracht = vogelfreiCutCents(revenue)
+    const eventFoodcost = aggregateShopping({
+      ingredients: ingredientsQ.data ?? [],
+      dishes: dishesQ.data ?? [],
+      linksByDish: linksQ.data ?? {},
+      totalGuests: e.guestCount,
+    }).reduce((sum, l) => sum + l.totalCostCents, 0)
+    return {
+      id: e.id,
+      label: `Avond ${idx + 1}`,
+      guestCount: e.guestCount,
+      revenueCents: revenue,
+      vogelfreiCents: afdracht,
+      foodcostCents: eventFoodcost,
+      locationCents: e.locationCostCents,
+      marginCents: revenue - afdracht - eventFoodcost - e.locationCostCents,
+    }
+  })
+
+  const totalsRow = breakdown.reduce(
+    (acc, row) => ({
+      guestCount: acc.guestCount + row.guestCount,
+      revenueCents: acc.revenueCents + row.revenueCents,
+      vogelfreiCents: acc.vogelfreiCents + row.vogelfreiCents,
+      foodcostCents: acc.foodcostCents + row.foodcostCents,
+      locationCents: acc.locationCents + row.locationCents,
+      marginCents: acc.marginCents + row.marginCents,
+    }),
+    {
+      guestCount: 0,
+      revenueCents: 0,
+      vogelfreiCents: 0,
+      foodcostCents: 0,
+      locationCents: 0,
+      marginCents: 0,
+    },
+  )
+
   return (
     <div className="vg-page flex flex-col gap-s-9">
-      <ScreenHeader
-        eyebrow="Vogelfrei-afrekening"
-        title="Geld"
-        description="Bruto-omzet − 40% Vogelfrei-afdracht − foodcost − locatie − overige. Eén totaal over de pop-up-serie."
-      />
-
-      {/* Vogelfrei voorwaarden */}
-      <Card>
-        <div className="flex items-baseline justify-between gap-s-4 flex-wrap">
-          <div>
-            <span className="t-caption t-faded">Vogelfrei-deal</span>
-            <h2 className="t-heading-l mt-s-1">40% van de ticket-omzet</h2>
-            <p className="t-body-s t-soft mt-s-2" style={{ maxWidth: '56ch' }}>
-              Afdracht aan Vogelfrei is een vast aandeel van de bruto ticket-omzet. Locatie-extras
-              (depot, schoonmaak) staan los hieronder als locatiekosten per avond.
-            </p>
-          </div>
-          <div className="text-right">
-            <span className="t-caption t-faded">Afdracht serie</span>
-            <div className="t-display-m tabular mt-s-2 text-ink">
-              {formatEuro(vogelfreiAfdrachtCents / 100)}
-            </div>
-          </div>
+      {/* Header */}
+      <header className="flex flex-col gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
+        <div>
+          <span className="t-caption t-faded">Vogelfrei-afrekening · verwacht</span>
+          <h1 className="t-display-m mt-s-2">Finance</h1>
         </div>
-      </Card>
+        <div className="flex items-center gap-s-3 flex-wrap">
+          <Segmented
+            value={selection}
+            options={[
+              { value: 'all', label: 'Alle 3' },
+              ...allEvents.map((e, i) => ({ value: e.id, label: `Avond ${i + 1}` })),
+            ]}
+            onChange={setSelection}
+          />
+        </div>
+      </header>
 
-      {/* Main table */}
-      <Card className="p-0 overflow-hidden">
-        <table className="vg-table">
-          <thead>
-            <tr>
-              <th>Avond</th>
-              <th className="vg-table__right">Gasten</th>
-              <th className="vg-table__right">Prijs</th>
-              <th className="vg-table__right">Omzet</th>
-              <th className="vg-table__right">Afdracht 40%</th>
-              <th className="vg-table__right">Locatie</th>
-              <th className="vg-table__right">Resterend</th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((e) => {
-              const revenue = e.guestCount * e.ticketPriceCents
-              const afdracht = vogelfreiCutCents(revenue)
-              const rest = revenue - afdracht - e.locationCostCents
-              return (
-                <tr key={e.id}>
-                  <td>
-                    <div className="font-medium text-ink">{e.name}</div>
-                    <div className="t-body-s t-faded mt-s-1">
-                      {formatDateLong(e.eventDate)}
-                    </div>
-                  </td>
-                  <td className="vg-table__right tabular">{e.guestCount}</td>
-                  <td className="vg-table__right tabular">
-                    {formatEuro(e.ticketPriceCents / 100)}
-                  </td>
-                  <td className="vg-table__right tabular vg-table__title">
-                    {formatEuro(revenue / 100)}
-                  </td>
-                  <td className="vg-table__right tabular vg-table__muted">
-                    − {formatEuro(afdracht / 100)}
-                  </td>
-                  <td className="vg-table__right tabular vg-table__muted">
-                    − {formatEuro(e.locationCostCents / 100)}
-                  </td>
-                  <td className="vg-table__right tabular vg-table__title">
-                    {formatEuro(rest / 100)}
-                  </td>
-                </tr>
-              )
-            })}
-            <tr className="vg-table__total">
-              <td>Totaal</td>
-              <td className="vg-table__right tabular">{totalGuests}</td>
-              <td />
-              <td className="vg-table__right tabular">
-                {formatEuro(totalRevenueCents / 100)}
-              </td>
-              <td className="vg-table__right tabular">
-                − {formatEuro(vogelfreiAfdrachtCents / 100)}
-              </td>
-              <td className="vg-table__right tabular">
-                − {formatEuro(totalLocationCents / 100)}
-              </td>
-              <td className="vg-table__right tabular">
-                {formatEuro(
-                  (totalRevenueCents - vogelfreiAfdrachtCents - totalLocationCents) / 100,
-                )}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </Card>
+      {/* Hero meter — verwachte marge */}
+      <section
+        className="vg-card vg-card--bordered flex flex-col gap-s-3"
+        style={{ padding: 'var(--s-7)' }}
+      >
+        <span className="t-caption t-faded">
+          Verwachte marge · {selection === 'all' ? 'alle avonden' : selectionLabel(selection, allEvents)}
+        </span>
+        <div className="flex items-baseline gap-s-3">
+          <span
+            className="font-mono tabular-nums"
+            style={{
+              fontSize: 56,
+              lineHeight: 1,
+              letterSpacing: '-0.022em',
+              color: netCents >= 0 ? 'var(--positive)' : 'var(--negative)',
+            }}
+          >
+            {formatSignedEuro(netCents)}
+          </span>
+          <span className="t-body-s t-faded">{netCents >= 0 ? 'winst' : 'verlies'}</span>
+        </div>
+        <div className="t-mono-s t-faded">
+          {marginPct.toFixed(0)}% op {formatEuro(totalRevenueCents / 100)} omzet · {totalGuests}{' '}
+          {totalGuests === 1 ? 'gast' : 'gasten'}
+        </div>
+      </section>
 
-      {/* Summary cards */}
-      <div className="grid gap-s-5 md:grid-cols-3">
-        <SummaryCard
-          label="Per couvert"
-          value={formatEuro(perGuestCents / 100)}
-          sublines={[
-            ['Bruto-omzet', formatEuro(totalRevenueCents / Math.max(totalGuests, 1) / 100)],
-            ['Vogelfrei 40%', `− ${formatEuro(vogelfreiAfdrachtCents / Math.max(totalGuests, 1) / 100)}`],
-            ['Foodcost', `− ${formatEuro(foodcostCents / Math.max(totalGuests, 1) / 100)}`],
-          ]}
-          tone={perGuestCents >= 0 ? 'positive' : 'negative'}
-        />
-        <SummaryCard
-          label="Verhoudingen"
-          value={`${marginPct.toFixed(1)}%`}
-          sublines={[
-            ['Vogelfrei-ratio', `${(VOGELFREI_SHARE * 100).toFixed(0)}%`],
-            ['Foodcost-ratio', `${((foodcostCents / Math.max(totalRevenueCents, 1)) * 100).toFixed(1)}%`],
-            ['Overige', formatEuro(totalExpensesCents / 100)],
-          ]}
-        />
-        <SummaryCard
-          label="Netto-resultaat"
-          value={formatSignedEuro(netCents)}
-          sublines={[
-            ['Vogelfrei-afdracht', `− ${formatEuro(vogelfreiAfdrachtCents / 100)}`],
-            ['Foodcost-totaal', `− ${formatEuro(foodcostCents / 100)}`],
-            ['Locatie + overige', `− ${formatEuro((totalLocationCents + totalExpensesCents) / 100)}`],
-          ]}
-          tone={netCents >= 0 ? 'positive' : 'negative'}
-        />
-      </div>
+      {/* Mobile: fin-rows in groepen */}
+      <section className="md:hidden flex flex-col gap-s-2">
+        <div className="t-caption t-faded px-s-1">Inkomsten</div>
+        <div className="vg-list">
+          <FinRow
+            label="Tickets"
+            detail={`${totalGuests} gasten × ${formatEuro((selectedEvents[0]?.ticketPriceCents ?? 0) / 100)}`}
+            value={formatEuro(totalRevenueCents / 100)}
+          />
+        </div>
 
-      {/* Overige uitgaven */}
+        <div className="t-caption t-faded px-s-1 mt-s-4">Uitgaven</div>
+        <div className="vg-list">
+          <FinRow
+            label="Vogelfrei afdracht"
+            detail={`${(VOGELFREI_SHARE * 100).toFixed(0)}% van omzet`}
+            value={`−${formatEuro(vogelfreiAfdrachtCents / 100)}`}
+            negative
+          />
+          <FinRow
+            label="Foodcost"
+            detail={`${selectedEvents.length} ${selectedEvents.length === 1 ? 'avond' : 'avonden'}`}
+            value={`−${formatEuro(foodcostCents / 100)}`}
+            negative
+          />
+          <FinRow
+            label="Locatiekosten"
+            detail={`${formatEuro(
+              (selectedEvents[0]?.locationCostCents ?? 0) / 100,
+            )} × ${selectedEvents.length} avond${selectedEvents.length === 1 ? '' : 'en'}`}
+            value={`−${formatEuro(totalLocationCents / 100)}`}
+            negative
+          />
+          {overheadCents > 0 ? (
+            <FinRow
+              label="Overig"
+              detail={`${expenses.length} ${expenses.length === 1 ? 'post' : 'posten'}`}
+              value={`−${formatEuro(overheadCents / 100)}`}
+              negative
+            />
+          ) : null}
+        </div>
+
+        <div className="vg-list mt-s-4">
+          <FinRow
+            label="Marge"
+            value={formatSignedEuro(netCents)}
+            total
+          />
+          <FinRow
+            label="Per gast"
+            value={formatEuro(perGuestCents / 100)}
+            muted
+          />
+        </div>
+      </section>
+
+      {/* Desktop: full breakdown table */}
+      <section className="hidden md:block">
+        <div className="vg-card vg-card--bordered overflow-hidden" style={{ padding: 0 }}>
+          <table className="vg-table">
+            <thead>
+              <tr>
+                <th>Post</th>
+                <th>Detail</th>
+                <th className="vg-table__right">Per gast</th>
+                {breakdown.map((row) => (
+                  <th key={row.id} className="vg-table__right">
+                    {row.label}
+                  </th>
+                ))}
+                <th className="vg-table__right">Totaal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <BreakdownRow
+                label="Tickets"
+                detail={`${totalsRow.guestCount} gasten × ${formatEuro(
+                  (allEvents[0]?.ticketPriceCents ?? 0) / 100,
+                )}`}
+                perGuest={
+                  totalsRow.guestCount > 0
+                    ? formatEuro(totalsRow.revenueCents / totalsRow.guestCount / 100)
+                    : '—'
+                }
+                values={breakdown.map((r) => formatEuro(r.revenueCents / 100))}
+                total={formatEuro(totalsRow.revenueCents / 100)}
+                bold
+              />
+              <BreakdownRow
+                label="Vogelfrei share"
+                detail={`${(VOGELFREI_SHARE * 100).toFixed(0)}% (vast)`}
+                perGuest={
+                  totalsRow.guestCount > 0
+                    ? `−${formatEuro(totalsRow.vogelfreiCents / totalsRow.guestCount / 100)}`
+                    : '—'
+                }
+                values={breakdown.map((r) => `−${formatEuro(r.vogelfreiCents / 100)}`)}
+                total={`−${formatEuro(totalsRow.vogelfreiCents / 100)}`}
+                negative
+              />
+              <BreakdownRow
+                label="Foodcost"
+                detail={`${dishesQ.data?.length ?? 0} gerechten`}
+                perGuest={
+                  totalsRow.guestCount > 0
+                    ? `−${formatEuro(totalsRow.foodcostCents / totalsRow.guestCount / 100)}`
+                    : '—'
+                }
+                values={breakdown.map((r) => `−${formatEuro(r.foodcostCents / 100)}`)}
+                total={`−${formatEuro(totalsRow.foodcostCents / 100)}`}
+                negative
+              />
+              <BreakdownRow
+                label="Locatiekosten"
+                detail={`${formatEuro(
+                  (allEvents[0]?.locationCostCents ?? 0) / 100,
+                )} per avond`}
+                perGuest={
+                  totalsRow.guestCount > 0
+                    ? `−${formatEuro(totalsRow.locationCents / totalsRow.guestCount / 100)}`
+                    : '—'
+                }
+                values={breakdown.map((r) => `−${formatEuro(r.locationCents / 100)}`)}
+                total={`−${formatEuro(totalsRow.locationCents / 100)}`}
+                negative
+              />
+              {expenses.length > 0 ? (
+                <BreakdownRow
+                  label="Overig"
+                  detail={expenses.map((e) => e.description).slice(0, 3).join(', ')}
+                  perGuest="—"
+                  values={breakdown.map(() => '—')}
+                  total={`−${formatEuro(
+                    expenses.reduce((s, e) => s + e.amountCents, 0) / 100,
+                  )}`}
+                  negative
+                />
+              ) : null}
+              <tr className="vg-table__total">
+                <td>Marge</td>
+                <td className="vg-table__muted">Na alle kosten</td>
+                <td className="vg-table__right vg-table__num">
+                  {totalsRow.guestCount > 0
+                    ? formatEuro(totalsRow.marginCents / totalsRow.guestCount / 100)
+                    : '—'}
+                </td>
+                {breakdown.map((r) => (
+                  <td key={r.id} className="vg-table__right vg-table__num">
+                    {formatEuro(r.marginCents / 100)}
+                  </td>
+                ))}
+                <td className="vg-table__right vg-table__num">
+                  {formatEuro(totalsRow.marginCents / 100)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Overige uitgaven beheer */}
       <section className="flex flex-col gap-s-4">
         <header className="flex items-end justify-between gap-s-4">
           <div>
             <span className="t-caption t-faded">Buiten foodcost en locatie</span>
-            <h2 className="t-heading-l mt-s-1">Overige uitgaven</h2>
+            <h2 className="t-title-l mt-s-1">Overige uitgaven</h2>
           </div>
           <Button
             variant="secondary"
@@ -249,10 +386,12 @@ export function Finance() {
           </Card>
         ) : null}
 
-        <Card className="p-0 overflow-hidden">
-          {expenses.length === 0 ? (
-            <p className="p-s-7 t-body-m t-soft">Nog geen overige uitgaven.</p>
-          ) : (
+        {expenses.length === 0 ? (
+          <div className="vg-card vg-card--bordered">
+            <p className="t-body-m t-soft">Nog geen overige uitgaven.</p>
+          </div>
+        ) : (
+          <div className="vg-card vg-card--bordered overflow-hidden" style={{ padding: 0 }}>
             <table className="vg-table">
               <thead>
                 <tr>
@@ -267,7 +406,7 @@ export function Finance() {
                   <tr key={expense.id}>
                     <td className="vg-table__title">{expense.category}</td>
                     <td className="vg-table__muted">{expense.description}</td>
-                    <td className="vg-table__right tabular">
+                    <td className="vg-table__right vg-table__num">
                       {formatEuro(expense.amountCents / 100)}
                     </td>
                     <td className="vg-table__right">
@@ -297,61 +436,131 @@ export function Finance() {
                 ))}
                 <tr className="vg-table__total">
                   <td colSpan={2}>Totaal</td>
-                  <td className="vg-table__right tabular">
-                    {formatEuro(totalExpensesCents / 100)}
+                  <td className="vg-table__right vg-table__num">
+                    {formatEuro(
+                      expenses.reduce((s, e) => s + e.amountCents, 0) / 100,
+                    )}
                   </td>
                   <td />
                 </tr>
               </tbody>
             </table>
-          )}
-        </Card>
+          </div>
+        )}
       </section>
     </div>
   )
 }
 
-function SummaryCard({
-  label,
+function selectionLabel(id: string, events: Array<{ id: string }>): string {
+  const idx = events.findIndex((e) => e.id === id)
+  return idx >= 0 ? `avond ${idx + 1}` : 'avond'
+}
+
+function Segmented({
   value,
-  sublines,
-  tone,
+  options,
+  onChange,
 }: {
-  label: string
   value: string
-  sublines: Array<[string, string]>
-  tone?: 'positive' | 'negative'
+  options: Array<{ value: string; label: string }>
+  onChange: (next: string) => void
 }) {
   return (
-    <Card>
-      <span className="t-caption t-faded">{label}</span>
-      <div
-        className="t-display-l tabular mt-s-3"
-        style={{
-          color:
-            tone === 'positive'
-              ? 'var(--positive)'
-              : tone === 'negative'
-                ? 'var(--negative)'
-                : undefined,
-        }}
-      >
-        {value}
-      </div>
-      <div className="vg-card__sep" />
-      <div className="flex flex-col gap-s-2 t-body-s">
-        {sublines.map(([k, v]) => (
-          <div key={k} className="flex items-baseline justify-between">
-            <span className="t-soft">{k}</span>
-            <span className="tabular text-ink">{v}</span>
-          </div>
-        ))}
-      </div>
-    </Card>
+    <div className="vg-seg" role="tablist">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          role="tab"
+          aria-selected={opt.value === value}
+          className={cn('vg-seg__item', opt.value === value && 'vg-seg__item--on')}
+          onClick={() => onChange(opt.value)}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
   )
 }
 
-function formatSignedEuro(cents: number): string {
-  const sign = cents < 0 ? '−' : ''
-  return `${sign}${formatEuro(Math.abs(cents) / 100)}`
+function FinRow({
+  label,
+  detail,
+  value,
+  negative,
+  total,
+  muted,
+}: {
+  label: string
+  detail?: string
+  value: string
+  negative?: boolean
+  total?: boolean
+  muted?: boolean
+}) {
+  const valueColor = negative
+    ? 'var(--negative)'
+    : total
+      ? 'var(--ink)'
+      : muted
+        ? 'var(--ink-faded)'
+        : 'var(--ink)'
+  return (
+    <div className="vg-list__row">
+      <div className="vg-list__content">
+        <div className={cn('vg-list__title', total && 'font-medium')}>{label}</div>
+        {detail ? <div className="vg-list__subtitle">{detail}</div> : null}
+      </div>
+      <div
+        className={cn(
+          'font-mono tabular-nums',
+          total ? 't-mono-l font-medium' : 't-mono-m',
+        )}
+        style={{ color: valueColor }}
+      >
+        {value}
+      </div>
+    </div>
+  )
+}
+
+function BreakdownRow({
+  label,
+  detail,
+  perGuest,
+  values,
+  total,
+  bold,
+  negative,
+}: {
+  label: string
+  detail: string
+  perGuest: string
+  values: string[]
+  total: string
+  bold?: boolean
+  negative?: boolean
+}) {
+  const color = negative ? 'var(--negative)' : undefined
+  return (
+    <tr>
+      <td className={cn(bold && 'vg-table__title')} style={{ color }}>
+        {label}
+      </td>
+      <td className="vg-table__muted">{detail}</td>
+      <td className="vg-table__right vg-table__num vg-table__muted">{perGuest}</td>
+      {values.map((v, i) => (
+        <td key={i} className="vg-table__right vg-table__num" style={{ color }}>
+          {v}
+        </td>
+      ))}
+      <td
+        className={cn('vg-table__right vg-table__num', bold && 'vg-table__title')}
+        style={{ color, fontWeight: bold || negative ? 500 : undefined }}
+      >
+        {total}
+      </td>
+    </tr>
+  )
 }

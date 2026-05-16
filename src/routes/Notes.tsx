@@ -4,15 +4,7 @@ import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { nl } from 'date-fns/locale'
 import type { Note } from '../types/domain'
-import {
-  Badge,
-  Button,
-  Card,
-  Counter,
-  ScreenHeader,
-  Search,
-  Sheet,
-} from '../components/ui'
+import { Button, Search, Sheet } from '../components/ui'
 import { EmptyState } from '../components/EmptyState'
 import { Skeleton } from '../components/Skeleton'
 import { NoteForm } from '../features/notes/NoteForm'
@@ -67,17 +59,20 @@ export function Notes() {
   const total = data?.length ?? 0
 
   return (
-    <div className="vg-page flex flex-col gap-s-9">
-      <ScreenHeader
-        eyebrow="Werkboek"
-        title="Notities"
-        description="Vrij notitieblok — ideeën, to-do's, herinneringen."
-        actions={
-          <Button variant="accent" onClick={() => setAdding(true)}>
-            <Plus size={16} aria-hidden /> Notitie
-          </Button>
-        }
-      />
+    <div className="vg-page flex flex-col gap-s-7">
+      {/* Header */}
+      <header className="flex flex-col gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
+        <div>
+          <span className="t-caption t-faded">Werkboek</span>
+          <h1 className="t-display-m mt-s-2">Notities</h1>
+          <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
+            Vrij notitieblok — ideeën, to-do's, herinneringen.
+          </p>
+        </div>
+        <Button variant="accent" onClick={() => setAdding(true)}>
+          <Plus size={16} aria-hidden /> Notitie
+        </Button>
+      </header>
 
       <div className="flex items-center gap-s-4 flex-wrap">
         <div className="flex-1 max-w-[420px]">
@@ -87,9 +82,9 @@ export function Notes() {
             onChange={(e) => setFilter(e.target.value)}
           />
         </div>
-        <Counter>
+        <span className="t-mono-s t-faded tabular-nums">
           {filtered.length} van {total}
-        </Counter>
+        </span>
       </div>
 
       {isLoading ? (
@@ -99,11 +94,11 @@ export function Notes() {
           <Skeleton className="h-40" />
         </div>
       ) : isError ? (
-        <Card>
+        <div className="vg-card vg-card--bordered">
           <p className="t-body-m text-negative">
             Kon notities niet laden — {error instanceof Error ? error.message : 'fout'}
           </p>
-        </Card>
+        </div>
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={StickyNote}
@@ -115,7 +110,7 @@ export function Notes() {
           }
         />
       ) : (
-        <div className="grid gap-s-5 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-s-4 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((note) => (
             <NoteCard
               key={note.id}
@@ -180,25 +175,36 @@ function NoteCard({
     <button
       type="button"
       onClick={onClick}
-      className="text-left vg-card hover:bg-paper-deep transition"
+      className="text-left vg-card vg-card--bordered hover:bg-paper-deep transition-colors"
       style={{ cursor: 'pointer' }}
     >
       <div className="flex flex-col gap-s-3">
         <div>
-          <h3 className="t-heading-m line-clamp-1">{note.title || 'Zonder titel'}</h3>
-          <span className="t-caption t-faded">{updated}</span>
+          <h3
+            className="line-clamp-2"
+            style={{ fontSize: 18, lineHeight: 1.3, letterSpacing: '-0.018em', fontWeight: 600 }}
+          >
+            {note.title || 'Zonder titel'}
+          </h3>
+          <span className="t-mono-s t-faded mt-s-1 inline-block">{updated}</span>
         </div>
         {preview ? (
           <p className="t-body-s t-soft whitespace-pre-wrap line-clamp-5">{preview}</p>
         ) : null}
         {(note.tags.length > 0 || dishName || courseName) && (
           <div className="flex flex-wrap gap-s-2">
-            {courseName ? <Badge variant="outline">{courseName}</Badge> : null}
-            {dishName ? <Badge variant="neutral">{dishName}</Badge> : null}
+            {courseName ? (
+              <span className="t-mono-s t-faded">{courseName}</span>
+            ) : null}
+            {dishName ? (
+              <span className="t-mono-s" style={{ color: 'var(--ink-soft)' }}>
+                {dishName}
+              </span>
+            ) : null}
             {note.tags.map((t) => (
-              <Badge key={t} variant="outline">
+              <span key={t} className="t-mono-s t-accent">
                 #{t}
-              </Badge>
+              </span>
             ))}
           </div>
         )}

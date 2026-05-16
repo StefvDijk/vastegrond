@@ -6,7 +6,7 @@ import { useAuth } from '../lib/auth'
 import { formatDateShort } from '../lib/format'
 import { useDeleteTeamMember, useTeamMembers } from '../features/team/hooks'
 import { TeamMemberForm } from '../features/team/TeamMemberForm'
-import { Button, Card, CardSeparator, ScreenHeader } from '../components/ui'
+import { Button, Card, CardSeparator } from '../components/ui'
 
 export function Settings() {
   const { user } = useAuth()
@@ -27,33 +27,35 @@ export function Settings() {
   }
 
   return (
-    <div className="vg-page flex flex-col gap-s-9">
-      <ScreenHeader
-        eyebrow="Wie & waar"
-        title="Team"
-        description="Toegang tot de app. Sign-ups zijn uit — invites lopen via het Supabase-dashboard."
-        actions={
-          <Button
-            variant="accent"
-            onClick={() => {
-              setAdding(true)
-              setEditing(null)
-            }}
-          >
-            <Plus size={16} aria-hidden /> Teamlid
-          </Button>
-        }
-      />
+    <div className="vg-page flex flex-col gap-s-7">
+      <header className="flex flex-col gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
+        <div>
+          <span className="t-caption t-faded">Wie & waar</span>
+          <h1 className="t-display-m mt-s-2">Team</h1>
+          <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
+            Toegang tot de app. Sign-ups zijn uit — invites lopen via het Supabase-dashboard.
+          </p>
+        </div>
+        <Button
+          variant="accent"
+          onClick={() => {
+            setAdding(true)
+            setEditing(null)
+          }}
+        >
+          <Plus size={16} aria-hidden /> Teamlid
+        </Button>
+      </header>
 
       {adding ? (
         <Card>
-          <h2 className="t-heading-l mb-s-5">Nieuw teamlid</h2>
+          <h2 className="t-title-l mb-s-5">Nieuw teamlid</h2>
           <TeamMemberForm onCancel={() => setAdding(false)} onSaved={() => setAdding(false)} />
         </Card>
       ) : null}
       {editing ? (
         <Card>
-          <h2 className="t-heading-l mb-s-5">{editing.email}</h2>
+          <h2 className="t-title-l mb-s-5">{editing.email}</h2>
           <TeamMemberForm
             member={editing}
             onCancel={() => setEditing(null)}
@@ -72,16 +74,20 @@ export function Settings() {
               {teamQ.error instanceof Error ? teamQ.error.message : 'Fout'}
             </p>
           ) : (teamQ.data?.length ?? 0) === 0 ? (
-            <Card>
+            <div className="vg-card vg-card--bordered">
               <p className="t-body-m t-soft">Nog geen teamleden toegevoegd.</p>
-            </Card>
+            </div>
           ) : (
             (teamQ.data ?? []).map((m) => (
-              <Card key={m.id}>
+              <div key={m.id} className="vg-card vg-card--bordered">
                 <div className="flex items-start justify-between gap-s-3">
                   <div>
-                    <h3 className="t-heading-m">{m.displayName ?? m.email}</h3>
-                    <span className="t-body-s t-soft mt-s-1 block">
+                    <h3
+                      style={{ fontSize: 18, lineHeight: 1.3, letterSpacing: '-0.018em', fontWeight: 600 }}
+                    >
+                      {m.displayName ?? m.email}
+                    </h3>
+                    <span className="t-mono-s t-faded mt-s-1 block">
                       Toegevoegd {formatDateShort(m.createdAt)}
                     </span>
                   </div>
@@ -117,7 +123,7 @@ export function Settings() {
                     {m.userId ? 'Gekoppeld' : 'Nog niet ingelogd'}
                   </span>
                 </div>
-              </Card>
+              </div>
             ))
           )}
         </div>
@@ -125,7 +131,11 @@ export function Settings() {
 
       {/* Eigen account */}
       <Card>
-        <h2 className="t-heading-l">Eigen account</h2>
+        <h2
+          style={{ fontSize: 20, lineHeight: 1.25, letterSpacing: '-0.020em', fontWeight: 600 }}
+        >
+          Eigen account
+        </h2>
         <CardSeparator />
         <div className="grid gap-s-5 md:grid-cols-2">
           <div>
@@ -134,16 +144,18 @@ export function Settings() {
           </div>
           <div>
             <span className="t-caption t-faded">Gebruikers-ID</span>
-            <div className="mt-s-2 t-body-s t-faded font-mono break-all">
-              {user?.id ?? '—'}
-            </div>
+            <div className="mt-s-2 t-mono-s t-faded break-all">{user?.id ?? '—'}</div>
           </div>
         </div>
       </Card>
 
       {/* Uitleg invites */}
       <Card>
-        <h2 className="t-heading-l">Iemand toegang geven</h2>
+        <h2
+          style={{ fontSize: 20, lineHeight: 1.25, letterSpacing: '-0.020em', fontWeight: 600 }}
+        >
+          Iemand toegang geven
+        </h2>
         <ol className="mt-s-5 flex flex-col gap-s-3 list-decimal pl-s-5 t-body-m t-soft">
           <li>
             Open{' '}

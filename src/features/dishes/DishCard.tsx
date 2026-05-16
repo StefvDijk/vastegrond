@@ -36,14 +36,7 @@ export function DishCard({ course, dish, links, ingredients }: DishCardProps) {
   }
 
   return (
-    <article
-      className="overflow-hidden"
-      style={{
-        background: 'var(--paper-elevated)',
-        borderRadius: 'var(--r-m)',
-        border: '1px solid var(--line)',
-      }}
-    >
+    <article className="vg-card vg-card--bordered" style={{ padding: 0, overflow: 'hidden' }}>
       <header className="flex items-center gap-s-3 px-s-5 py-s-4">
         <button
           type="button"
@@ -59,11 +52,15 @@ export function DishCard({ course, dish, links, ingredients }: DishCardProps) {
           )}
         </button>
         <div className="flex-1 min-w-0">
-          <h3 className="truncate text-body-m font-medium text-ink">{dish.name}</h3>
-          <p className="t-caption t-faded mt-1 normal-case tracking-normal">
-            {formatNumber(dish.portions)} porties · recept {formatEuro(recipeCents / 100)} · per
-            portie{' '}
-            <span className="text-ink font-medium">
+          <h3
+            className="truncate"
+            style={{ fontSize: 17, lineHeight: 1.3, letterSpacing: '-0.014em', fontWeight: 600 }}
+          >
+            {dish.name}
+          </h3>
+          <p className="t-mono-s t-faded mt-s-1 truncate">
+            {formatNumber(dish.portions)} porties · recept {formatEuro(recipeCents / 100)} · p/p{' '}
+            <span style={{ color: 'var(--ink)' }}>
               {formatEuro(perPortionCents / 100)}
             </span>
           </p>
@@ -91,12 +88,12 @@ export function DishCard({ course, dish, links, ingredients }: DishCardProps) {
 
       {expanded ? (
         <div
-          className="flex flex-col gap-s-5 p-s-5"
-          style={{ borderTop: '1px solid var(--line)', background: 'var(--paper)' }}
+          className="flex flex-col gap-s-5 px-s-5 py-s-5"
+          style={{ borderTop: '0.5px solid var(--line)', background: 'var(--paper)' }}
         >
           {editing ? (
-            <div className="vg-card">
-              <h4 className="t-heading-m mb-s-4">Gerecht bewerken</h4>
+            <div className="vg-card vg-card--bordered">
+              <h4 className="t-title-m mb-s-4">Gerecht bewerken</h4>
               <DishForm
                 course={course}
                 dish={dish}
@@ -107,13 +104,20 @@ export function DishCard({ course, dish, links, ingredients }: DishCardProps) {
           ) : null}
 
           {dish.notes ? (
-            <p className="whitespace-pre-line rounded-m bg-paper-elevated p-s-4 t-body-s t-soft">
+            <p
+              className="whitespace-pre-line t-body-s t-soft"
+              style={{
+                background: 'var(--paper-elevated)',
+                borderRadius: 'var(--r-m)',
+                padding: 'var(--s-4)',
+              }}
+            >
               {dish.notes}
             </p>
           ) : null}
 
-          <div className="vg-card">
-            <h4 className="t-heading-m mb-s-4">Ingrediënten</h4>
+          <div className="vg-card vg-card--bordered">
+            <h4 className="t-title-m mb-s-4">Ingrediënten</h4>
             <DishIngredientsEditor dishId={dish.id} portions={dish.portions} />
           </div>
         </div>
