@@ -9,7 +9,7 @@ Productie-app voor het voorbereiden van pop-up diners ("Vaste Grond" bij Vogelfr
 - Tailwind CSS + CSS variables voor design tokens (iOS-inspired)
 - shadcn/ui waar het past, anders eigen componenten
 - lucide-react icons
-- Supabase (Postgres + Auth met magic link)
+- Supabase (Postgres + Auth met email + 4-cijferige code, team-allowlist via RLS)
 - TanStack Query voor server state
 - React Hook Form + Zod
 - sonner voor toasts
@@ -77,16 +77,26 @@ Kritische berekeningen die in code-comments uitgelegd moeten staan:
 - [x] Fase 9: iOS-polish (skeleton, empty-state, tap-feedback, animate-rise)
 - [x] Fase 10: Cloudflare Workers deploy (Workers + static assets, niet klassieke Pages) — live op vastegrond.stefvandijk10.workers.dev
 - [x] Fase 11: Notities + Inspiratie tabbladen (vrije notities, links/foto's met Supabase Storage)
+- [x] Fase 12: Design system v2026.1 (SF Pro stack, vg-* components, alle 10 routes herbouwd)
+- [x] Fase 13: Productie-hardening — team-allowlist RLS (migr. 0008/0009), PIN-auth (email + 4 cijfers via signInWithPassword), prod-domain odeaanoma.nl
 
-## Deploy (Cloudflare Pages)
+## Deploy (Cloudflare Workers + custom domain)
 
-- Hosting: Cloudflare Pages, SPA-mode via `public/_redirects` (`/* → /index.html 200`).
+- Hosting: Cloudflare Workers met static assets. SPA-fallback via `not_found_handling: "single-page-application"` (in CF dashboard).
+- Productie-URL: `https://odeaanoma.nl`. Fallback: `vastegrond.stefvandijk10.workers.dev`.
 - Node-versie: `.nvmrc` = 22.
 - Build command: `npm run build`, output: `dist/`.
 - Required env vars in Cloudflare project (Production + Preview):
   - `VITE_SUPABASE_URL`
   - `VITE_SUPABASE_ANON_KEY`
-- Na eerste deploy: voeg de pages.dev-URL toe aan Supabase → Authentication → URL Configuration → Site URL + Additional redirect URLs (`https://<project>.pages.dev/**`).
+- Supabase → Authentication → URL Configuration: Site URL = `https://odeaanoma.nl`, Additional redirect URLs incl. `http://localhost:5173/**`.
+
+## Auth (PIN-code, geen magic link)
+
+- 2 vaste accounts in `auth.users`: `stefvandijk10@gmail.com`, `morrison_mensink@hotmail.com`. Wachtwoord = 4-cijferige PIN.
+- Login = `signInWithPassword`. Session persistent ~30 dagen (Supabase default refresh-token).
+- RLS-allowlist: alleen wie in `public.team_members` (op email) staat mag iets lezen/schrijven (migratie 0009).
+- Nieuwe gebruiker toevoegen: (1) via Supabase Dashboard auth.users aanmaken met password, (2) hetzelfde email in `team_members` invoeren.
 
 ## Niet bouwen
 
