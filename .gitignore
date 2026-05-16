@@ -20,6 +20,9 @@ supabase/.branches
 supabase/.temp
 supabase/seed.sql.bak
 
+# Wrangler local state
+.wrangler
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
