@@ -12,6 +12,7 @@ import {
 } from '../features/shopping/aggregate'
 import { formatEuro, formatNumber } from '../lib/format'
 import { cn } from '../lib/cn'
+import { IosNavBar } from '../components/ui'
 
 type Filter = 'all' | 'open' | 'done'
 
@@ -72,29 +73,26 @@ export function Shopping() {
     return supplierLines.filter((l) => checked[l.ingredient.id])
   }
 
+  const eyebrow = `Inkoop · ${lines.length} ${lines.length === 1 ? 'post' : 'posten'} · ${groups.length} ${groups.length === 1 ? 'leverancier' : 'leveranciers'}`
+
   return (
-    <div className="vg-page flex flex-col gap-s-7">
-      {/* Header */}
-      <header className="flex flex-col gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
-        <div>
-          <span className="t-caption t-faded">
-            Inkoop · {lines.length} {lines.length === 1 ? 'post' : 'posten'} ·{' '}
-            {groups.length} {groups.length === 1 ? 'leverancier' : 'leveranciers'}
-          </span>
-          <h1 className="t-display-m mt-s-2">Boodschappen</h1>
+    <>
+      <IosNavBar title="Boodschappen" eyebrow={eyebrow} />
+      <div className="vg-page flex flex-col gap-s-6 md:gap-s-7">
+        {/* Desktop-only header */}
+        <header className="hidden md:flex md:flex-col md:gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
+          <div>
+            <span className="t-caption t-faded">{eyebrow}</span>
+            <h1 className="t-display-m mt-s-2">Boodschappen</h1>
+          </div>
+        </header>
+
+        {/* Filter chips */}
+        <div className="flex items-center gap-s-2 overflow-x-auto -mx-s-4 px-s-4 md:mx-0 md:px-0">
+          <Chip on={filter === 'all'} onClick={() => setFilter('all')}>Alles</Chip>
+          <Chip on={filter === 'open'} onClick={() => setFilter('open')}>Open</Chip>
+          <Chip on={filter === 'done'} onClick={() => setFilter('done')}>Afgevinkt</Chip>
         </div>
-        <div className="flex items-center gap-s-2">
-          <Chip on={filter === 'all'} onClick={() => setFilter('all')}>
-            Alles
-          </Chip>
-          <Chip on={filter === 'open'} onClick={() => setFilter('open')}>
-            Open
-          </Chip>
-          <Chip on={filter === 'done'} onClick={() => setFilter('done')}>
-            Afgevinkt
-          </Chip>
-        </div>
-      </header>
 
       {/* Voortgangs-summary */}
       <section className="flex items-baseline justify-between gap-s-4">
@@ -148,7 +146,8 @@ export function Shopping() {
           })}
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
 

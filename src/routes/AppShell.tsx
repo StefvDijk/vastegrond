@@ -101,11 +101,11 @@ export function AppShell() {
         </div>
       </header>
 
-      <main key={location.pathname} className="flex-1 animate-rise pb-32 md:pb-0">
+      <main key={location.pathname} className="flex-1 animate-rise">
         <Outlet />
       </main>
 
-      {/* Mobile bottom tabs */}
+      {/* Mobile bottom tabs — translucent Liquid Glass, safe-area aware */}
       <nav className="vg-bottomtabs md:hidden" aria-label="Hoofdnavigatie">
         {primaryMobileTabs.map((tab) => {
           const Icon = tab.icon
@@ -117,7 +117,7 @@ export function AppShell() {
                 cn('vg-bottomtabs__item', isActive && 'vg-bottomtabs__item--on')
               }
             >
-              <Icon size={22} aria-hidden />
+              <Icon size={26} strokeWidth={1.75} aria-hidden />
               <span>{tab.label}</span>
             </NavLink>
           )
@@ -127,7 +127,7 @@ export function AppShell() {
           onClick={() => setMoreOpen(true)}
           className={cn('vg-bottomtabs__item', moreActive && 'vg-bottomtabs__item--on')}
         >
-          <MoreHorizontal size={22} aria-hidden />
+          <MoreHorizontal size={26} strokeWidth={1.75} aria-hidden />
           <span>Meer</span>
         </button>
       </nav>

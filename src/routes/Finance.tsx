@@ -9,7 +9,7 @@ import { useDeleteExpense, useExpenses } from '../features/expenses/hooks'
 import { ExpenseForm } from '../features/expenses/ExpenseForm'
 import { aggregateShopping } from '../features/shopping/aggregate'
 import { formatEuro } from '../lib/format'
-import { Button, Card } from '../components/ui'
+import { Button, Card, IosNavBar } from '../components/ui'
 import { Skeleton } from '../components/Skeleton'
 import { VOGELFREI_SHARE, vogelfreiCutCents } from '../lib/finance'
 import { cn } from '../lib/cn'
@@ -143,42 +143,52 @@ export function Finance() {
     },
   )
 
+  const segmentOptions = [
+    { value: 'all' as const, label: 'Alle 3' },
+    ...allEvents.map((e, i) => ({ value: e.id, label: `Avond ${i + 1}` })),
+  ]
+
   return (
-    <div className="vg-page flex flex-col gap-s-9">
-      {/* Header */}
-      <header className="flex flex-col gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
-        <div>
-          <span className="t-caption t-faded">Vogelfrei-afrekening · verwacht</span>
-          <h1 className="t-display-m mt-s-2">Finance</h1>
+    <>
+      <IosNavBar
+        title="Finance"
+        eyebrow="Vogelfrei-afrekening · verwacht"
+      />
+      <div className="vg-page flex flex-col gap-s-7 md:gap-s-9">
+        {/* Desktop header */}
+        <header className="hidden md:flex md:flex-col md:gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
+          <div>
+            <span className="t-caption t-faded">Vogelfrei-afrekening · verwacht</span>
+            <h1 className="t-display-m mt-s-2">Finance</h1>
+          </div>
+          <div className="flex items-center gap-s-3 flex-wrap">
+            <Segmented value={selection} options={segmentOptions} onChange={setSelection} />
+          </div>
+        </header>
+
+        {/* Mobile-only segmented selector */}
+        <div className="md:hidden">
+          <Segmented value={selection} options={segmentOptions} onChange={setSelection} />
         </div>
-        <div className="flex items-center gap-s-3 flex-wrap">
-          <Segmented
-            value={selection}
-            options={[
-              { value: 'all', label: 'Alle 3' },
-              ...allEvents.map((e, i) => ({ value: e.id, label: `Avond ${i + 1}` })),
-            ]}
-            onChange={setSelection}
-          />
-        </div>
-      </header>
 
       {/* Hero meter — verwachte marge */}
       <section
         className="vg-card vg-card--bordered flex flex-col gap-s-3"
-        style={{ padding: 'var(--s-7)' }}
       >
         <span className="t-caption t-faded">
           Verwachte marge · {selection === 'all' ? 'alle avonden' : selectionLabel(selection, allEvents)}
         </span>
-        <div className="flex items-baseline gap-s-3">
+        <div className="flex items-baseline gap-s-3 flex-wrap">
           <span
-            className="font-mono tabular-nums"
+            className="tabular-nums"
             style={{
-              fontSize: 56,
-              lineHeight: 1,
-              letterSpacing: '-0.022em',
+              fontFamily: 'var(--font-sans)',
+              fontSize: 40,
+              fontWeight: 700,
+              lineHeight: 1.0,
+              letterSpacing: '-0.026em',
               color: netCents >= 0 ? 'var(--positive)' : 'var(--negative)',
+              fontFeatureSettings: '"tnum" on, "cv11" on',
             }}
           >
             {formatSignedEuro(netCents)}
@@ -448,7 +458,8 @@ export function Finance() {
           </div>
         )}
       </section>
-    </div>
+      </div>
+    </>
   )
 }
 

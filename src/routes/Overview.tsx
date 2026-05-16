@@ -11,6 +11,7 @@ import { Skeleton, SkeletonCard } from '../components/Skeleton'
 import { vogelfreiCutCents } from '../lib/finance'
 import { EVENT_CAPACITY } from '../lib/constants'
 import { cn } from '../lib/cn'
+import { IosNavBar, IosStatCard, IosStatGrid } from '../components/ui'
 
 const WEEKDAYS = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag']
 const MONTHS = [
@@ -189,85 +190,97 @@ export function Overview() {
   const daysToFirst = firstEvent ? daysUntil(sortedEvents[0]!.eventDate) : 0
 
   return (
-    <div className="vg-page flex flex-col gap-s-9">
-      {/* Header — desktop h-bar / mobile large title */}
-      <header className="flex flex-col gap-s-2 md:flex-row md:items-end md:justify-between md:gap-s-6">
-        <div>
-          <span className="t-caption t-faded">Vaste Grond × Vogelfrei · zomer 2026</span>
-          <h1 className="t-display-m mt-s-2 md:t-display-m">Overview</h1>
-        </div>
-        <div className="hidden md:flex md:items-center md:gap-s-3">
-          <span className="t-body-s t-faded">
-            Eerstvolgend · {relativeLabel(daysToFirst).toLowerCase()}
-          </span>
-        </div>
-      </header>
+    <>
+      {/* Mobile: iOS large-title nav with collapse-on-scroll */}
+      <IosNavBar
+        title="Overzicht"
+        eyebrow="Vaste Grond × Vogelfrei · zomer 2026"
+        description={
+          firstEvent
+            ? `Eerstvolgend ${firstEvent.weekday.toLowerCase()} ${firstEvent.shortDate} · ${relativeLabel(daysToFirst).toLowerCase()}`
+            : undefined
+        }
+      />
 
-      {/* Hero event-card (mobile alleen) */}
-      {firstEvent ? (
-        <section className="md:hidden">
-          <HeroEventCard event={firstEvent} relative={relativeLabel(daysToFirst)} />
-        </section>
-      ) : null}
+      <div className="vg-page flex flex-col gap-s-7 md:gap-s-9">
+        {/* Desktop-only header */}
+        <header className="hidden md:flex md:flex-col md:gap-s-2 md:flex-row md:items-end md:justify-between md:gap-s-6">
+          <div>
+            <span className="t-caption t-faded">Vaste Grond × Vogelfrei · zomer 2026</span>
+            <h1 className="t-display-m mt-s-2">Overview</h1>
+          </div>
+          <div className="md:flex md:items-center md:gap-s-3">
+            <span className="t-body-s t-faded">
+              Eerstvolgend · {relativeLabel(daysToFirst).toLowerCase()}
+            </span>
+          </div>
+        </header>
 
-      {/* Mobile secundaire avonden */}
-      {laterEvents.length > 0 ? (
-        <section className="flex flex-col gap-s-4 md:hidden">
-          {laterEvents.map((event) => (
-            <SecondaryEventCard key={event.id} event={event} />
+        {/* Mobile: hero card (eerstvolgende avond) */}
+        {firstEvent ? (
+          <section className="md:hidden">
+            <HeroEventCard event={firstEvent} relative={relativeLabel(daysToFirst)} />
+          </section>
+        ) : null}
+
+        {/* Mobile: secundaire avonden als inset-grouped list */}
+        {laterEvents.length > 0 ? (
+          <section className="md:hidden">
+            <div className="vg-list-section-header">Volgende avonden</div>
+            <div className="vg-list">
+              {laterEvents.map((event) => (
+                <SecondaryEventRow key={event.id} event={event} />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {/* Desktop: 3 gelijkwaardige avonden naast elkaar */}
+        <section className="hidden md:grid md:grid-cols-3 md:gap-s-6">
+          {summaries.map((event) => (
+            <DesktopEventCard key={event.id} event={event} />
           ))}
         </section>
-      ) : null}
 
-      {/* Desktop: 3 gelijkwaardige avonden naast elkaar */}
-      <section className="hidden md:grid md:grid-cols-3 md:gap-s-6">
-        {summaries.map((event) => (
-          <DesktopEventCard key={event.id} event={event} />
-        ))}
-      </section>
-
-      {/* Summary cells */}
-      <section>
-        <h2 className="t-caption t-faded mb-s-4 md:hidden">Totaal over de serie</h2>
-        <div className="grid grid-cols-2 gap-s-4 md:grid-cols-4 md:gap-s-6">
-          <SumCell
-            label="Totaal omzet"
-            value={formatEuro(totalRevenueCents / 100)}
-            sub={`${totalGuests} tickets × ${formatEuro(
-              (summaries[0]?.ticketCents ?? 0) / 100,
-            )}`}
-          />
-          <SumCell
-            label="Vogelfrei share"
-            value={`−${formatEuro(totalVogelfrei / 100)}`}
-            sub="40% van omzet"
-            tone="negative"
-          />
-          <SumCell
-            label="Foodcost (indicatie)"
-            value={formatEuro(totalFoodcostCents / 100)}
-            sub={`~${formatEuro(foodcostPerGuestCents / 100)} per gast`}
-          />
-          <SumCell
-            label="Verwachte marge"
-            value={formatEuro(totalMargeCents / 100)}
-            sub={`${margePercent}% op omzet`}
-            tone="positive"
-          />
-        </div>
-      </section>
-
-      {/* Menu voortgang */}
-      {menuProgress.length > 0 ? (
+        {/* Summary cells — equal-height iOS stat grid */}
         <section>
-          <div className="vg-card vg-card--bordered">
-            <span className="t-caption t-faded">Menu voortgang</span>
-            <p className="t-body-s t-soft mt-s-2">
-              Gerechten met ingrediënten gekoppeld vs. totaal per gang.
-            </p>
-            <div className="mt-s-6 flex flex-col gap-s-4">
+          <div className="vg-list-section-header md:hidden">Totaal over de serie</div>
+          <h2 className="hidden md:block t-caption t-faded mb-s-4">Totaal over de serie</h2>
+          <IosStatGrid>
+            <IosStatCard
+              label="Totaal omzet"
+              value={formatEuro(totalRevenueCents / 100)}
+              sub={`${totalGuests} tickets · ${formatEuro(
+                (summaries[0]?.ticketCents ?? 0) / 100,
+              )} p.s.`}
+            />
+            <IosStatCard
+              label="Vogelfrei share"
+              value={`−${formatEuro(totalVogelfrei / 100)}`}
+              sub="40% van omzet"
+              tone="negative"
+            />
+            <IosStatCard
+              label="Foodcost (ind.)"
+              value={formatEuro(totalFoodcostCents / 100)}
+              sub={`~${formatEuro(foodcostPerGuestCents / 100)} per gast`}
+            />
+            <IosStatCard
+              label="Verwachte marge"
+              value={formatEuro(totalMargeCents / 100)}
+              sub={`${margePercent}% op omzet`}
+              tone="positive"
+            />
+          </IosStatGrid>
+        </section>
+
+        {/* Menu voortgang — inset-grouped list */}
+        {menuProgress.length > 0 ? (
+          <section>
+            <div className="vg-list-section-header">Menu voortgang</div>
+            <div className="vg-list">
               {menuProgress.map((p) => (
-                <CourseProgress
+                <CourseProgressRow
                   key={p.id}
                   label={p.name}
                   ready={p.ready}
@@ -275,15 +288,18 @@ export function Overview() {
                 />
               ))}
             </div>
-          </div>
-        </section>
-      ) : null}
+            <div className="vg-list-section-footer">
+              Gerechten met ingrediënten gekoppeld vs. totaal per gang.
+            </div>
+          </section>
+        ) : null}
 
-      <footer className="flex items-center justify-between t-mono-s t-faded pt-s-4 border-t border-line">
-        <span>Vogelfrei-deal · 40% afdracht op ticket-omzet</span>
-        <span className="hidden md:inline">v2026.1</span>
-      </footer>
-    </div>
+        <footer className="flex items-center justify-between t-body-s t-faded pt-s-4 border-t border-line">
+          <span>Vogelfrei · 40% op ticket-omzet</span>
+          <span className="hidden md:inline">v2026.1</span>
+        </footer>
+      </div>
+    </>
   )
 }
 
@@ -296,44 +312,61 @@ function HeroEventCard({
 }) {
   return (
     <div
-      className="rounded-l p-s-7 text-paper"
+      className="rounded-[18px] p-s-5 text-paper"
       style={{ background: 'var(--ink)' }}
     >
-      <div className="t-mono-s uppercase" style={{ color: 'rgba(244,241,235,0.55)' }}>
+      <div
+        className="uppercase"
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: '0.06em',
+          color: 'rgba(244,241,235,0.55)',
+        }}
+      >
         Eerstvolgend · {relative}
       </div>
       <div
         className="mt-s-3"
         style={{
-          fontSize: 32,
-          lineHeight: 1.08,
-          letterSpacing: '-0.028em',
-          fontWeight: 600,
+          fontSize: 30,
+          lineHeight: 1.06,
+          letterSpacing: '-0.026em',
+          fontWeight: 700,
         }}
       >
         {event.weekday}
         <br />
         {event.shortDate}
       </div>
-      <div className="mt-s-6 grid grid-cols-2 gap-s-5">
+
+      <div
+        className="mt-s-5 pt-s-4 grid grid-cols-2 gap-s-4"
+        style={{ borderTop: '0.5px solid rgba(244,241,235,0.18)' }}
+      >
         <div>
           <div
-            className="t-mono-s uppercase"
-            style={{ color: 'rgba(244,241,235,0.55)' }}
+            className="uppercase"
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              color: 'rgba(244,241,235,0.55)',
+            }}
           >
             Gasten
           </div>
           <div
-            className="mt-s-2 tabular-nums"
-            style={{ fontSize: 30, lineHeight: 1, letterSpacing: '-0.025em', fontWeight: 600 }}
+            className="mt-s-2 t-num-l"
+            style={{ color: 'var(--paper)', fontWeight: 700 }}
           >
             {event.guests}
             <span
-              className="font-mono ml-s-2 tabular-nums"
               style={{
                 fontSize: 13,
                 color: 'rgba(244,241,235,0.55)',
-                fontWeight: 400,
+                fontWeight: 500,
+                marginLeft: 4,
               }}
             >
               /{event.capacity}
@@ -342,46 +375,61 @@ function HeroEventCard({
         </div>
         <div>
           <div
-            className="t-mono-s uppercase"
-            style={{ color: 'rgba(244,241,235,0.55)' }}
+            className="uppercase"
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              color: 'rgba(244,241,235,0.55)',
+            }}
           >
             Marge
           </div>
           <div
-            className="font-mono mt-s-2 tabular-nums"
-            style={{ fontSize: 22, lineHeight: 1 }}
+            className="mt-s-2 t-num-l"
+            style={{ color: 'var(--paper)', fontWeight: 700 }}
           >
             {formatEuro(event.marginCents / 100)}
           </div>
+        </div>
+      </div>
+
+      <div className="mt-s-4">
+        <div
+          className="h-[3px] rounded-pill overflow-hidden"
+          style={{ background: 'rgba(244,241,235,0.16)' }}
+          aria-hidden
+        >
+          <div
+            className="h-full rounded-pill transition-all duration-base ease-out"
+            style={{
+              width: `${Math.max(0, Math.min(1, event.progress)) * 100}%`,
+              background: 'var(--paper)',
+            }}
+          />
         </div>
       </div>
     </div>
   )
 }
 
-function SecondaryEventCard({ event }: { event: EventSummary }) {
+function SecondaryEventRow({ event }: { event: EventSummary }) {
   return (
-    <div className="vg-card vg-card--bordered">
-      <div className="t-caption t-faded">{event.weekday}</div>
-      <div
-        className="mt-s-2"
-        style={{ fontSize: 24, lineHeight: 1.15, letterSpacing: '-0.022em', fontWeight: 600 }}
-      >
-        {event.longTitle}
-      </div>
-      <div className="mt-s-4 flex items-baseline justify-between">
-        <div className="t-mono-m t-soft tabular-nums">
-          {event.guests}
-          <span className="t-ghost"> / {event.capacity} gasten</span>
+    <div className="vg-list__row">
+      <div className="vg-list__content">
+        <div className="vg-list__title">
+          {event.weekday} {event.shortDate}
         </div>
-        {event.badgeLabel ? (
-          <span className={cn('vg-badge', badgeClass(event.status))}>
-            {event.status === 'positive' ? <span className="vg-badge__dot" /> : null}
-            {event.badgeLabel}
-          </span>
-        ) : null}
+        <div className="vg-list__subtitle">
+          {event.guests} / {event.capacity} gasten · marge {formatEuro(event.marginCents / 100)}
+        </div>
       </div>
-      <ProgressBar value={event.progress} tone={event.status} className="mt-s-4" />
+      {event.badgeLabel ? (
+        <span className={cn('vg-badge', badgeClass(event.status))}>
+          {event.status === 'positive' ? <span className="vg-badge__dot" /> : null}
+          {event.badgeLabel}
+        </span>
+      ) : null}
     </div>
   )
 }
@@ -462,43 +510,7 @@ function badgeClass(status: EventSummary['status']): string {
   return 'vg-badge--accent'
 }
 
-function SumCell({
-  label,
-  value,
-  sub,
-  tone,
-}: {
-  label: string
-  value: string
-  sub?: string
-  tone?: 'positive' | 'negative'
-}) {
-  const valueColor =
-    tone === 'positive'
-      ? 'var(--positive)'
-      : tone === 'negative'
-        ? 'var(--negative)'
-        : 'var(--ink)'
-  return (
-    <div className="vg-card vg-card--bordered">
-      <div className="t-caption t-faded">{label}</div>
-      <div
-        className="font-mono mt-s-2 tabular-nums"
-        style={{
-          fontSize: 22,
-          lineHeight: 1,
-          letterSpacing: '-0.012em',
-          color: valueColor,
-        }}
-      >
-        {value}
-      </div>
-      {sub ? <div className="mt-s-2 t-mono-s t-faded">{sub}</div> : null}
-    </div>
-  )
-}
-
-function CourseProgress({
+function CourseProgressRow({
   label,
   ready,
   total,
@@ -508,26 +520,27 @@ function CourseProgress({
   total: number
 }) {
   const ratio = total === 0 ? 0 : ready / total
+  const done = ratio === 1
   return (
-    <div className="flex flex-col gap-s-2">
-      <div className="flex items-baseline justify-between">
-        <span className="t-body-m">{label}</span>
-        <span className="t-mono-s t-faded tabular-nums">
-          {ready}/{total}
-        </span>
-      </div>
-      <div
-        className="h-[3px] rounded-pill overflow-hidden"
-        style={{ background: 'var(--paper-deep)' }}
-        aria-hidden
-      >
+    <div className="vg-list__row">
+      <div className="vg-list__content">
+        <div className="vg-list__title">{label}</div>
         <div
-          className="h-full rounded-pill transition-all duration-base ease-out"
-          style={{
-            width: `${ratio * 100}%`,
-            background: ratio === 1 ? 'var(--positive)' : 'var(--accent)',
-          }}
-        />
+          className="h-[3px] rounded-pill overflow-hidden mt-s-2"
+          style={{ background: 'var(--paper-deep)' }}
+          aria-hidden
+        >
+          <div
+            className="h-full rounded-pill transition-all duration-base ease-out"
+            style={{
+              width: `${ratio * 100}%`,
+              background: done ? 'var(--positive)' : 'var(--accent)',
+            }}
+          />
+        </div>
+      </div>
+      <div className="vg-list__value">
+        {ready}/{total}
       </div>
     </div>
   )

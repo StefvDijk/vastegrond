@@ -5,7 +5,7 @@ import type { Ingredient } from '../types/domain'
 import { formatEuro } from '../lib/format'
 import { useDeleteIngredient, useIngredients } from '../features/ingredients/hooks'
 import { IngredientForm } from '../features/ingredients/IngredientForm'
-import { Button, Search, Sheet } from '../components/ui'
+import { Button, Search, Sheet, IosNavBar, IosNavAction } from '../components/ui'
 
 export function Ingredients() {
   const { data, isLoading, isError, error } = useIngredients()
@@ -60,20 +60,31 @@ export function Ingredients() {
   const total = data?.length ?? 0
 
   return (
-    <div className="vg-page flex flex-col gap-s-7">
-      {/* Header */}
-      <header className="flex flex-col gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
-        <div>
-          <span className="t-caption t-faded">Bibliotheek</span>
-          <h1 className="t-display-m mt-s-2">Ingrediënten</h1>
-          <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
-            Gedeelde bibliotheek. Eenheid en prijs bepalen de foodcost van een gerecht.
-          </p>
-        </div>
-        <Button variant="accent" onClick={() => setAdding(true)}>
-          <Plus size={16} aria-hidden /> Ingrediënt
-        </Button>
-      </header>
+    <>
+      <IosNavBar
+        title="Ingrediënten"
+        eyebrow="Bibliotheek"
+        description="Gedeelde bibliotheek. Eenheid en prijs bepalen de foodcost van een gerecht."
+        trailing={
+          <IosNavAction primary onClick={() => setAdding(true)} aria-label="Ingrediënt toevoegen">
+            <Plus size={20} aria-hidden />
+          </IosNavAction>
+        }
+      />
+      <div className="vg-page flex flex-col gap-s-6 md:gap-s-7">
+        {/* Desktop header */}
+        <header className="hidden md:flex md:flex-col md:gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
+          <div>
+            <span className="t-caption t-faded">Bibliotheek</span>
+            <h1 className="t-display-m mt-s-2">Ingrediënten</h1>
+            <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
+              Gedeelde bibliotheek. Eenheid en prijs bepalen de foodcost van een gerecht.
+            </p>
+          </div>
+          <Button variant="accent" onClick={() => setAdding(true)}>
+            <Plus size={16} aria-hidden /> Ingrediënt
+          </Button>
+        </header>
 
       {/* Search + count */}
       <div className="flex items-center gap-s-4 flex-wrap">
@@ -165,7 +176,8 @@ export function Ingredients() {
           />
         ) : null}
       </Sheet>
-    </div>
+      </div>
+    </>
   )
 }
 

@@ -13,7 +13,7 @@ import { useDishes, useAllDishIngredients } from '../features/dishes/hooks'
 import { useIngredients } from '../features/ingredients/hooks'
 import { costPerPortionCents } from '../features/dishes/foodcost'
 import { formatDateShort, formatEuro } from '../lib/format'
-import { Button, Input } from '../components/ui'
+import { Button, Input, IosNavBar, IosNavAction } from '../components/ui'
 import { Skeleton } from '../components/Skeleton'
 import { cn } from '../lib/cn'
 import type { Course, Dish } from '../types/domain'
@@ -75,77 +75,94 @@ export function Menu() {
     )
   }
 
+  const description = dates
+    ? `Gedeeld menu voor ${dates}. Allergenen en gasten verschillen per avond — zie Gasten.`
+    : 'Gedeeld menu voor alle avonden.'
+
   return (
-    <div className="vg-page flex flex-col gap-s-7">
-      {/* Header */}
-      <header className="flex flex-col gap-s-2 md:flex-row md:items-end md:justify-between md:gap-s-6">
-        <div>
-          <span className="t-caption t-faded">Eén menu, drie avonden</span>
-          <h1 className="t-display-m mt-s-2">Menu</h1>
-          <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
-            {dates
-              ? `Gedeeld menu voor ${dates}. Allergenen en gasten verschillen per avond — zie Gasten.`
-              : 'Gedeeld menu voor alle avonden.'}
-          </p>
-        </div>
-        <div className="flex items-center gap-s-2">
-          <button
-            type="button"
-            className={cn('vg-seg__item', editMode && 'vg-seg__item--on')}
-            onClick={() => setEditMode((v) => !v)}
-            aria-pressed={editMode}
-          >
+    <>
+      {/* Mobile nav with Bewerken / Klaar as trailing action */}
+      <IosNavBar
+        title="Menu"
+        eyebrow="Eén menu, drie avonden"
+        description={description}
+        trailing={
+          <IosNavAction primary={editMode} onClick={() => setEditMode((v) => !v)}>
             {editMode ? 'Klaar' : 'Bewerken'}
-          </button>
-        </div>
-      </header>
+          </IosNavAction>
+        }
+      />
 
-      {/* Courses + dishes per course */}
-      {courses.length === 0 ? (
-        <div className="vg-card vg-card--bordered">
-          <p className="t-body-m t-soft">Nog geen gangen. Voeg de eerste hieronder toe.</p>
-        </div>
-      ) : (
-        <div className="flex flex-col">
-          {courses.map((course, index) => (
-            <CourseSection
-              key={course.id}
-              course={course}
-              index={index}
-              total={courses.length}
-              previous={courses[index - 1]}
-              next={courses[index + 1]}
-              dishes={dishesByCourse.get(course.id) ?? []}
-              ingredients={ingredientsQ.data ?? []}
-              linksByDish={linksQ.data ?? {}}
-              editMode={editMode}
-            />
-          ))}
-        </div>
-      )}
+      <div className="vg-page flex flex-col gap-s-6 md:gap-s-7">
+        {/* Desktop header (mobile uses IosNavBar above) */}
+        <header className="hidden md:flex md:flex-col md:gap-s-2 md:flex-row md:items-end md:justify-between md:gap-s-6">
+          <div>
+            <span className="t-caption t-faded">Eén menu, drie avonden</span>
+            <h1 className="t-display-m mt-s-2">Menu</h1>
+            <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
+              {description}
+            </p>
+          </div>
+          <div className="flex items-center gap-s-2">
+            <button
+              type="button"
+              className={cn('vg-seg__item', editMode && 'vg-seg__item--on')}
+              onClick={() => setEditMode((v) => !v)}
+              aria-pressed={editMode}
+            >
+              {editMode ? 'Klaar' : 'Bewerken'}
+            </button>
+          </div>
+        </header>
 
-      {/* Add course form */}
-      <form
-        onSubmit={onSubmitCourse}
-        className="flex flex-col gap-s-3 sm:flex-row sm:items-end pt-s-4 border-t border-line"
-      >
-        <div className="flex-1">
-          <label className="t-caption t-faded block mb-s-2">Nieuwe gang</label>
-          <Input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Voorgerecht, Hoofd, ..."
-          />
-        </div>
-        <Button
-          type="submit"
-          variant="accent"
-          disabled={createCourse.isPending || !draft.trim()}
+        {/* Courses + dishes per course */}
+        {courses.length === 0 ? (
+          <div className="vg-empty">
+            <p className="vg-empty__title">Nog geen gangen</p>
+            <p className="vg-empty__desc">Voeg de eerste hieronder toe.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-s-7">
+            {courses.map((course, index) => (
+              <CourseSection
+                key={course.id}
+                course={course}
+                index={index}
+                total={courses.length}
+                previous={courses[index - 1]}
+                next={courses[index + 1]}
+                dishes={dishesByCourse.get(course.id) ?? []}
+                ingredients={ingredientsQ.data ?? []}
+                linksByDish={linksQ.data ?? {}}
+                editMode={editMode}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Add course form */}
+        <form
+          onSubmit={onSubmitCourse}
+          className="flex flex-col gap-s-3 sm:flex-row sm:items-end pt-s-5 mt-s-3 border-t border-line"
         >
-          <Plus size={16} aria-hidden /> Voeg toe
-        </Button>
-      </form>
-    </div>
+          <div className="flex-1">
+            <label className="t-caption t-faded block mb-s-2">Nieuwe gang</label>
+            <Input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder="Voorgerecht, Hoofd, ..."
+            />
+          </div>
+          <Button
+            type="submit"
+            variant="accent"
+            disabled={createCourse.isPending || !draft.trim()}
+          >
+            <Plus size={16} aria-hidden /> Voeg toe
+          </Button>
+        </form>
+      </div>
+    </>
   )
 }
 
@@ -211,20 +228,26 @@ function CourseSection({
 
   const dishCount = dishes.length
 
+  const numeral = ROMAN[index] ?? String(index + 1)
+
   return (
     <section className="flex flex-col">
-      {/* Section header — Romeins cijfer + serif gang-naam + meta */}
+      {/* Section header: roman numeral · name (rename inline) · count · edit actions */}
       <header
-        className={cn(
-          'flex items-baseline gap-s-4 pt-s-6 pb-s-3',
-          index > 0 && 'border-t border-line mt-s-4',
-        )}
+        className="px-s-4 pb-s-2 flex items-center gap-s-3"
+        style={{ minHeight: 32 }}
       >
         <span
-          className="font-mono t-faded tabular-nums shrink-0"
-          style={{ fontSize: 11, letterSpacing: '0.06em' }}
+          className="shrink-0 tabular-nums"
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            color: 'var(--ink-faded)',
+            width: 18,
+          }}
         >
-          {ROMAN[index] ?? String(index + 1)}
+          {numeral}
         </span>
         <div className="flex-1 min-w-0">
           {renaming ? (
@@ -245,17 +268,32 @@ function CourseSection({
                 }
               }}
               className="vg-input vg-input--inline w-full"
-              style={{ fontSize: 22, letterSpacing: '-0.022em', fontWeight: 600 }}
+              style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}
             />
           ) : (
             <h2
-              style={{ fontSize: 22, lineHeight: 1.2, letterSpacing: '-0.022em', fontWeight: 600 }}
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-faded)',
+                margin: 0,
+              }}
             >
               {course.name}
             </h2>
           )}
         </div>
-        <span className="t-mono-s t-faded shrink-0">
+        <span
+          className="shrink-0 tabular-nums"
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: '0.04em',
+            color: 'var(--ink-faded)',
+          }}
+        >
           {dishCount} {dishCount === 1 ? 'gerecht' : 'gerechten'}
         </span>
         {editMode ? (
@@ -307,9 +345,24 @@ function CourseSection({
         ) : null}
       </header>
 
-      {/* Dishes */}
+      {/* Big serif/sans course title (the visual anchor) */}
+      <div className="px-s-4 pb-s-3">
+        <div
+          style={{
+            fontSize: 28,
+            lineHeight: 1.1,
+            letterSpacing: '-0.022em',
+            fontWeight: 700,
+            color: 'var(--ink)',
+          }}
+        >
+          {course.name}
+        </div>
+      </div>
+
+      {/* Dishes — iOS inset-grouped list */}
       {dishes.length === 0 ? (
-        <div className="pl-s-7 pb-s-3 t-body-s t-ghost">
+        <div className="vg-list-section-footer">
           Nog geen gerechten. Voeg ze toe via Recepten.
         </div>
       ) : (

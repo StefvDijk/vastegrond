@@ -6,7 +6,7 @@ import { useAuth } from '../lib/auth'
 import { formatDateShort } from '../lib/format'
 import { useDeleteTeamMember, useTeamMembers } from '../features/team/hooks'
 import { TeamMemberForm } from '../features/team/TeamMemberForm'
-import { Button, Card, CardSeparator } from '../components/ui'
+import { Button, Card, CardSeparator, IosNavBar, IosNavAction } from '../components/ui'
 
 export function Settings() {
   const { user } = useAuth()
@@ -27,25 +27,44 @@ export function Settings() {
   }
 
   return (
-    <div className="vg-page flex flex-col gap-s-7">
-      <header className="flex flex-col gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
-        <div>
-          <span className="t-caption t-faded">Wie & waar</span>
-          <h1 className="t-display-m mt-s-2">Team</h1>
-          <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
-            Toegang tot de app. Sign-ups zijn uit — invites lopen via het Supabase-dashboard.
-          </p>
-        </div>
-        <Button
-          variant="accent"
-          onClick={() => {
-            setAdding(true)
-            setEditing(null)
-          }}
-        >
-          <Plus size={16} aria-hidden /> Teamlid
-        </Button>
-      </header>
+    <>
+      <IosNavBar
+        title="Team"
+        eyebrow="Wie & waar"
+        description="Toegang tot de app. Sign-ups zijn uit — invites lopen via het Supabase-dashboard."
+        trailing={
+          <IosNavAction
+            primary
+            onClick={() => {
+              setAdding(true)
+              setEditing(null)
+            }}
+            aria-label="Teamlid toevoegen"
+          >
+            <Plus size={20} aria-hidden />
+          </IosNavAction>
+        }
+      />
+      <div className="vg-page flex flex-col gap-s-6 md:gap-s-7">
+        {/* Desktop header */}
+        <header className="hidden md:flex md:flex-col md:gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
+          <div>
+            <span className="t-caption t-faded">Wie & waar</span>
+            <h1 className="t-display-m mt-s-2">Team</h1>
+            <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
+              Toegang tot de app. Sign-ups zijn uit — invites lopen via het Supabase-dashboard.
+            </p>
+          </div>
+          <Button
+            variant="accent"
+            onClick={() => {
+              setAdding(true)
+              setEditing(null)
+            }}
+          >
+            <Plus size={16} aria-hidden /> Teamlid
+          </Button>
+        </header>
 
       {adding ? (
         <Card>
@@ -176,6 +195,7 @@ export function Settings() {
           <li>Voeg datzelfde e-mailadres hier toe als teamlid voor zichtbaarheid.</li>
         </ol>
       </Card>
-    </div>
+      </div>
+    </>
   )
 }

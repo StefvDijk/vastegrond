@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { nl } from 'date-fns/locale'
 import type { Note } from '../types/domain'
-import { Button, Search, Sheet } from '../components/ui'
+import { Button, Search, Sheet, IosNavBar, IosNavAction } from '../components/ui'
 import { EmptyState } from '../components/EmptyState'
 import { Skeleton } from '../components/Skeleton'
 import { NoteForm } from '../features/notes/NoteForm'
@@ -59,20 +59,31 @@ export function Notes() {
   const total = data?.length ?? 0
 
   return (
-    <div className="vg-page flex flex-col gap-s-7">
-      {/* Header */}
-      <header className="flex flex-col gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
-        <div>
-          <span className="t-caption t-faded">Werkboek</span>
-          <h1 className="t-display-m mt-s-2">Notities</h1>
-          <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
-            Vrij notitieblok — ideeën, to-do's, herinneringen.
-          </p>
-        </div>
-        <Button variant="accent" onClick={() => setAdding(true)}>
-          <Plus size={16} aria-hidden /> Notitie
-        </Button>
-      </header>
+    <>
+      <IosNavBar
+        title="Notities"
+        eyebrow="Werkboek"
+        description="Vrij notitieblok — ideeën, to-do's, herinneringen."
+        trailing={
+          <IosNavAction primary onClick={() => setAdding(true)} aria-label="Notitie toevoegen">
+            <Plus size={20} aria-hidden />
+          </IosNavAction>
+        }
+      />
+      <div className="vg-page flex flex-col gap-s-6 md:gap-s-7">
+        {/* Desktop-only header */}
+        <header className="hidden md:flex md:flex-col md:gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
+          <div>
+            <span className="t-caption t-faded">Werkboek</span>
+            <h1 className="t-display-m mt-s-2">Notities</h1>
+            <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
+              Vrij notitieblok — ideeën, to-do's, herinneringen.
+            </p>
+          </div>
+          <Button variant="accent" onClick={() => setAdding(true)}>
+            <Plus size={16} aria-hidden /> Notitie
+          </Button>
+        </header>
 
       <div className="flex items-center gap-s-4 flex-wrap">
         <div className="flex-1 max-w-[420px]">
@@ -150,7 +161,8 @@ export function Notes() {
           />
         ) : null}
       </Sheet>
-    </div>
+      </div>
+    </>
   )
 }
 

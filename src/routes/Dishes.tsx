@@ -8,7 +8,7 @@ import { DishCard } from '../features/dishes/DishCard'
 import { DishForm } from '../features/dishes/DishForm'
 import { formatEuro } from '../lib/format'
 import { recipeCostCents } from '../features/dishes/foodcost'
-import { Button, Card } from '../components/ui'
+import { Button, Card, IosNavBar, IosStatCard, IosStatGrid } from '../components/ui'
 import { Skeleton } from '../components/Skeleton'
 import { cn } from '../lib/cn'
 
@@ -65,39 +65,51 @@ export function Dishes() {
 
   if (courses.length === 0) {
     return (
-      <div className="vg-page">
-        <header>
-          <span className="t-caption t-faded">Recepten</span>
-          <h1 className="t-display-m mt-s-2">Recepten</h1>
-        </header>
-        <p className="t-body-m t-soft mt-s-6">Voeg eerst gangen toe in de Menu-tab.</p>
-      </div>
+      <>
+        <IosNavBar title="Recepten" eyebrow="Foodcost-bibliotheek" />
+        <div className="vg-page">
+          <header className="hidden md:block">
+            <span className="t-caption t-faded">Recepten</span>
+            <h1 className="t-display-m mt-s-2">Recepten</h1>
+          </header>
+          <div className="vg-empty">
+            <p className="vg-empty__title">Voeg eerst gangen toe</p>
+            <p className="vg-empty__desc">Ga naar de Menu-tab om gangen aan te maken.</p>
+          </div>
+        </div>
+      </>
     )
   }
 
   return (
-    <div className="vg-page flex flex-col gap-s-7">
-      {/* Header */}
-      <header className="flex flex-col gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
-        <div>
-          <span className="t-caption t-faded">Foodcost-bibliotheek</span>
-          <h1 className="t-display-m mt-s-2">Recepten</h1>
-          <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
-            Eén menu voor alle avonden. Foodcost wordt live berekend uit de ingrediënten-bibliotheek.
-          </p>
-        </div>
-      </header>
+    <>
+      <IosNavBar
+        title="Recepten"
+        eyebrow="Foodcost-bibliotheek"
+        description="Eén menu voor alle avonden. Foodcost wordt live berekend uit de ingrediënten-bibliotheek."
+      />
+      <div className="vg-page flex flex-col gap-s-6 md:gap-s-7">
+        {/* Desktop-only header (mobile uses IosNavBar) */}
+        <header className="hidden md:flex md:flex-col md:gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
+          <div>
+            <span className="t-caption t-faded">Foodcost-bibliotheek</span>
+            <h1 className="t-display-m mt-s-2">Recepten</h1>
+            <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
+              Eén menu voor alle avonden. Foodcost wordt live berekend uit de ingrediënten-bibliotheek.
+            </p>
+          </div>
+        </header>
 
-      {/* Stat cells */}
-      <div className="grid grid-cols-3 gap-s-3 md:gap-s-6">
-        <Stat label="Gerechten" value={String(totalDishes)} />
-        <Stat label="Recept-totaal" value={formatEuro(totalRecipeCents / 100)} />
-        <Stat
-          label="Menu per gast"
-          value={formatEuro(totalPerPortionCents / 100)}
-          accent
-        />
-      </div>
+        {/* Stat cells */}
+        <IosStatGrid className="md:grid-cols-3">
+          <IosStatCard label="Gerechten" value={String(totalDishes)} />
+          <IosStatCard label="Recept-totaal" value={formatEuro(totalRecipeCents / 100)} />
+          <IosStatCard
+            label="Menu per gast"
+            value={formatEuro(totalPerPortionCents / 100)}
+            tone="accent"
+          />
+        </IosStatGrid>
 
       {/* Per course sections */}
       {courses.map((course, index) => {
@@ -165,25 +177,8 @@ export function Dishes() {
           </section>
         )
       })}
-    </div>
+      </div>
+    </>
   )
 }
 
-function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <div className="vg-card vg-card--bordered" style={{ padding: 'var(--s-5)' }}>
-      <div className="t-caption t-faded">{label}</div>
-      <div
-        className="font-mono mt-s-2 tabular-nums"
-        style={{
-          fontSize: 22,
-          lineHeight: 1,
-          letterSpacing: '-0.012em',
-          color: accent ? 'var(--accent)' : 'var(--ink)',
-        }}
-      >
-        {value}
-      </div>
-    </div>
-  )
-}

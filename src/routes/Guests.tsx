@@ -6,7 +6,7 @@ import { useEvents } from '../features/events/hooks'
 import { useDeleteGuest, useGuests } from '../features/guests/hooks'
 import { GuestForm } from '../features/guests/GuestForm'
 import { formatDateShort } from '../lib/format'
-import { Button, Card, Segmented } from '../components/ui'
+import { Button, Card, Segmented, IosNavBar, IosNavAction } from '../components/ui'
 import { EmptyState } from '../components/EmptyState'
 import { Skeleton } from '../components/Skeleton'
 import { EVENT_CAPACITY } from '../lib/constants'
@@ -114,36 +114,59 @@ export function Guests() {
 
   if (!selectedEvent) {
     return (
-      <div className="vg-page">
-        <header>
-          <span className="t-caption t-faded">RSVP</span>
-          <h1 className="t-display-m mt-s-2">Gasten</h1>
-        </header>
-        <p className="t-body-m t-soft mt-s-6">Maak eerst een event aan in Overview.</p>
-      </div>
+      <>
+        <IosNavBar title="Gasten" eyebrow="RSVP" />
+        <div className="vg-page">
+          <header className="hidden md:block">
+            <span className="t-caption t-faded">RSVP</span>
+            <h1 className="t-display-m mt-s-2">Gasten</h1>
+          </header>
+          <div className="vg-empty">
+            <p className="vg-empty__title">Geen avonden</p>
+            <p className="vg-empty__desc">Maak eerst een event aan in Overview.</p>
+          </div>
+        </div>
+      </>
     )
   }
 
   const capacityLeft = EVENT_CAPACITY - stats.confirmedSeats
 
   return (
-    <div className="vg-page flex flex-col gap-s-7">
-      {/* Header */}
-      <header className="flex flex-col gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
-        <div>
-          <span className="t-caption t-faded">RSVP per avond</span>
-          <h1 className="t-display-m mt-s-2">Gasten</h1>
-        </div>
-        <Button
-          variant="accent"
-          onClick={() => {
-            setAdding(true)
-            setEditing(null)
-          }}
-        >
-          <Plus size={16} aria-hidden /> Nieuwe gast
-        </Button>
-      </header>
+    <>
+      <IosNavBar
+        title="Gasten"
+        eyebrow="RSVP per avond"
+        trailing={
+          <IosNavAction
+            primary
+            onClick={() => {
+              setAdding(true)
+              setEditing(null)
+            }}
+            aria-label="Gast toevoegen"
+          >
+            <Plus size={20} aria-hidden />
+          </IosNavAction>
+        }
+      />
+      <div className="vg-page flex flex-col gap-s-6 md:gap-s-7">
+        {/* Desktop header */}
+        <header className="hidden md:flex md:flex-col md:gap-s-3 md:flex-row md:items-end md:justify-between md:gap-s-6">
+          <div>
+            <span className="t-caption t-faded">RSVP per avond</span>
+            <h1 className="t-display-m mt-s-2">Gasten</h1>
+          </div>
+          <Button
+            variant="accent"
+            onClick={() => {
+              setAdding(true)
+              setEditing(null)
+            }}
+          >
+            <Plus size={16} aria-hidden /> Nieuwe gast
+          </Button>
+        </header>
 
       {/* Segmented per avond */}
       <Segmented
@@ -270,7 +293,8 @@ export function Guests() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
 
