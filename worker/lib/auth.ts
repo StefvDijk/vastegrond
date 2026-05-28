@@ -1,5 +1,5 @@
 import type { MiddlewareHandler, Next, Context } from 'hono'
-import type { HonoEnv } from '../index'
+import type { HonoEnv } from './types'
 
 // ── PIN hashing (PBKDF2-HMAC-SHA256) ─────────────────────────────────────────
 
@@ -20,20 +20,26 @@ export async function hashPin(pin: string): Promise<string> {
 }
 
 export async function verifyPin(pin: string, stored: string): Promise<boolean> {
-  const dot = stored.indexOf('.')
-  if (dot === -1) return false
-  const salt = Uint8Array.from(atob(stored.slice(0, dot)), (c) => c.charCodeAt(0))
-  const expected = Uint8Array.from(atob(stored.slice(dot + 1)), (c) => c.charCodeAt(0))
-  const key = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']
-  )
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, hash: 'SHA-256', iterations: 100_000 },
-    key, 256
-  )
-  const derived = new Uint8Array(bits)
-  if (derived.length !== expected.length) return false
-  return derived.every((b, i) => b === expected[i])
+  try {
+    const dot = stored.indexOf('.')
+    if (dot === -1) return false
+    const salt = Uint8Array.from(atob(stored.slice(0, dot)), (c) => c.charCodeAt(0))
+    const expected = Uint8Array.from(atob(stored.slice(dot + 1)), (c) => c.charCodeAt(0))
+    const key = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']
+    )
+    const bits = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt, hash: 'SHA-256', iterations: 100_000 },
+      key, 256
+    )
+    const derived = new Uint8Array(bits)
+    if (derived.length !== expected.length) return false
+    let diff = 0
+    for (let i = 0; i < derived.length; i++) diff |= derived[i] ^ expected[i]
+    return diff === 0
+  } catch {
+    return false
+  }
 }
 
 // ── JWT (HS256) ───────────────────────────────────────────────────────────────
@@ -41,8 +47,10 @@ export async function verifyPin(pin: string, stored: string): Promise<boolean> {
 type JwtPayload = { sub: string; email: string; exp: number }
 
 const b64url = (s: string) => s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
-const b64urlToB64 = (s: string) =>
-  s.replace(/-/g, '+').replace(/_/g, '/') + '=='.slice(0, (4 - (s.length % 4)) % 4)
+const b64urlToB64 = (s: string) => {
+  const pad = s.length % 4
+  return s.replace(/-/g, '+').replace(/_/g, '/') + (pad === 2 ? '==' : pad === 3 ? '=' : '')
+}
 
 export async function signJwt(payload: JwtPayload, secret: string): Promise<string> {
   const header = b64url(btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })))
@@ -64,7 +72,12 @@ export async function verifyJwt(token: string, secret: string): Promise<JwtPaylo
     'raw', new TextEncoder().encode(secret),
     { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
   )
-  const sig = Uint8Array.from(atob(b64urlToB64(s)), (c) => c.charCodeAt(0))
+  let sig: Uint8Array
+  try {
+    sig = Uint8Array.from(atob(b64urlToB64(s)), (c) => c.charCodeAt(0))
+  } catch {
+    return null
+  }
   const ok = await crypto.subtle.verify('HMAC', key, sig, new TextEncoder().encode(`${h}.${b}`))
   if (!ok) return null
   try {

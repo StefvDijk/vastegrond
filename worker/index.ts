@@ -1,8 +1,8 @@
-/// <reference types="@cloudflare/workers-types" />
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { z } from 'zod'
 import { authMiddleware, signJwt, verifyPin } from './lib/auth'
+import type { HonoEnv } from './lib/types'
 import { eventsRoutes } from './routes/events'
 import { coursesRoutes } from './routes/courses'
 import { dishesRoutes } from './routes/dishes'
@@ -14,18 +14,7 @@ import { teamRoutes } from './routes/team'
 import { notesRoutes } from './routes/notes'
 import { inspirationsRoutes } from './routes/inspirations'
 
-export type HonoEnv = {
-  Bindings: {
-    DB: D1Database
-    R2: R2Bucket
-    ASSETS: Fetcher
-    JWT_SECRET: string
-  }
-  Variables: {
-    userId: string
-    userEmail: string
-  }
-}
+export type { HonoEnv }
 
 const loginSchema = z.object({
   email: z.string().email(),
