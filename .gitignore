@@ -22,6 +22,7 @@ supabase/seed.sql.bak
 
 # Wrangler local state
 .wrangler
+.dev.vars
 
 # Editor directories and files
 .vscode/*
