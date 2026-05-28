@@ -1,5 +1,5 @@
 import { api } from '../../lib/api'
-import { mapEvent, type Event } from '../../types/domain'
+import { mapEvent, type Event, type EventRow } from '../../types/domain'
 
 export type EventUpdateInput = {
   id: string
@@ -13,7 +13,7 @@ export type EventUpdateInput = {
 }
 
 export async function updateEvent(input: EventUpdateInput): Promise<Event> {
-  const data = await api.patch<Record<string, unknown>>(`/events/${input.id}`, {
+  const data = await api.patch<EventRow>(`/events/${input.id}`, {
     name: input.name,
     eventDate: input.eventDate,
     guestCount: input.guestCount,

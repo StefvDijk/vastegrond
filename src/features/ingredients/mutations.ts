@@ -1,5 +1,5 @@
 import { api } from '../../lib/api'
-import { mapIngredient, type Ingredient } from '../../types/domain'
+import { mapIngredient, type Ingredient, type IngredientRow } from '../../types/domain'
 
 export type IngredientInput = {
   name: string
@@ -11,13 +11,13 @@ export type IngredientInput = {
 }
 
 export async function createIngredient(input: IngredientInput): Promise<Ingredient> {
-  const data = await api.post<Record<string, unknown>>('/ingredients', input)
+  const data = await api.post<IngredientRow>('/ingredients', input)
   return mapIngredient(data)
 }
 
 export async function updateIngredient(input: IngredientInput & { id: string }): Promise<Ingredient> {
   const { id, ...body } = input
-  const data = await api.patch<Record<string, unknown>>(`/ingredients/${id}`, body)
+  const data = await api.patch<IngredientRow>(`/ingredients/${id}`, body)
   return mapIngredient(data)
 }
 

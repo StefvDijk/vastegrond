@@ -1,10 +1,10 @@
 import { api } from '../../lib/api'
-import { mapDish, type Dish } from '../../types/domain'
+import { mapDish, type Dish, type DishRow } from '../../types/domain'
 
 export type DishIngredientLink = { ingredientId: string; amount: number }
 
 export async function fetchDishes(): Promise<Dish[]> {
-  const data = await api.get<Record<string, unknown>[]>('/dishes')
+  const data = await api.get<DishRow[]>('/dishes')
   return data.map(mapDish)
 }
 

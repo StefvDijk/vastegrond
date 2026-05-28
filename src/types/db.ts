@@ -1,406 +1,104 @@
-// Auto-generated via `mcp__supabase__generate_typescript_types`.
-// Regenerate na elke migratie. Niet handmatig bewerken.
+// Raw DB row types — snake_case matches D1 column names returned by the Worker API.
+// Do NOT import from @supabase/supabase-js here.
 
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
-
-export type Database = {
-  __InternalSupabase: {
-    PostgrestVersion: '14.5'
-  }
-  public: {
-    Tables: {
-      courses: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          position: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          position: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          position?: number
-        }
-        Relationships: []
-      }
-      dish_ingredients: {
-        Row: {
-          amount: number
-          dish_id: string
-          ingredient_id: string
-        }
-        Insert: {
-          amount: number
-          dish_id: string
-          ingredient_id: string
-        }
-        Update: {
-          amount?: number
-          dish_id?: string
-          ingredient_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'dish_ingredients_dish_id_fkey'
-            columns: ['dish_id']
-            isOneToOne: false
-            referencedRelation: 'dishes'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'dish_ingredients_ingredient_id_fkey'
-            columns: ['ingredient_id']
-            isOneToOne: false
-            referencedRelation: 'ingredients'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      dishes: {
-        Row: {
-          course_id: string
-          created_at: string
-          id: string
-          name: string
-          notes: string | null
-          portions: number
-          updated_at: string
-        }
-        Insert: {
-          course_id: string
-          created_at?: string
-          id?: string
-          name: string
-          notes?: string | null
-          portions?: number
-          updated_at?: string
-        }
-        Update: {
-          course_id?: string
-          created_at?: string
-          id?: string
-          name?: string
-          notes?: string | null
-          portions?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'dishes_course_id_fkey'
-            columns: ['course_id']
-            isOneToOne: false
-            referencedRelation: 'courses'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      events: {
-        Row: {
-          created_at: string
-          event_date: string
-          guest_count: number
-          id: string
-          location_cost_cents: number
-          location_name: string | null
-          name: string
-          notes: string | null
-          ticket_price_cents: number
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          event_date: string
-          guest_count?: number
-          id?: string
-          location_cost_cents?: number
-          location_name?: string | null
-          name: string
-          notes?: string | null
-          ticket_price_cents?: number
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          event_date?: string
-          guest_count?: number
-          id?: string
-          location_cost_cents?: number
-          location_name?: string | null
-          name?: string
-          notes?: string | null
-          ticket_price_cents?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      expenses: {
-        Row: {
-          amount_cents: number
-          category: string
-          created_at: string
-          description: string
-          id: string
-        }
-        Insert: {
-          amount_cents: number
-          category: string
-          created_at?: string
-          description: string
-          id?: string
-        }
-        Update: {
-          amount_cents?: number
-          category?: string
-          created_at?: string
-          description?: string
-          id?: string
-        }
-        Relationships: []
-      }
-      guests: {
-        Row: {
-          created_at: string
-          dietary: string | null
-          event_id: string
-          id: string
-          name: string
-          notes: string | null
-          party_size: number
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          dietary?: string | null
-          event_id: string
-          id?: string
-          name: string
-          notes?: string | null
-          party_size?: number
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          dietary?: string | null
-          event_id?: string
-          id?: string
-          name?: string
-          notes?: string | null
-          party_size?: number
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'guests_event_id_fkey'
-            columns: ['event_id']
-            isOneToOne: false
-            referencedRelation: 'events'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      ingredients: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          notes: string | null
-          price_per_unit_cents: number
-          purchase_unit: string | null
-          supplier: string | null
-          unit: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          notes?: string | null
-          price_per_unit_cents?: number
-          purchase_unit?: string | null
-          supplier?: string | null
-          unit: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          notes?: string | null
-          price_per_unit_cents?: number
-          purchase_unit?: string | null
-          supplier?: string | null
-          unit?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      inspirations: {
-        Row: {
-          author_id: string | null
-          course_id: string | null
-          created_at: string
-          dish_id: string | null
-          id: string
-          image_path: string | null
-          note: string
-          tags: string[]
-          title: string
-          updated_at: string
-          url: string | null
-        }
-        Insert: {
-          author_id?: string | null
-          course_id?: string | null
-          created_at?: string
-          dish_id?: string | null
-          id?: string
-          image_path?: string | null
-          note?: string
-          tags?: string[]
-          title?: string
-          updated_at?: string
-          url?: string | null
-        }
-        Update: {
-          author_id?: string | null
-          course_id?: string | null
-          created_at?: string
-          dish_id?: string | null
-          id?: string
-          image_path?: string | null
-          note?: string
-          tags?: string[]
-          title?: string
-          updated_at?: string
-          url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'inspirations_course_id_fkey'
-            columns: ['course_id']
-            isOneToOne: false
-            referencedRelation: 'courses'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'inspirations_dish_id_fkey'
-            columns: ['dish_id']
-            isOneToOne: false
-            referencedRelation: 'dishes'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      notes: {
-        Row: {
-          author_id: string | null
-          body: string
-          course_id: string | null
-          created_at: string
-          dish_id: string | null
-          id: string
-          tags: string[]
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          author_id?: string | null
-          body?: string
-          course_id?: string | null
-          created_at?: string
-          dish_id?: string | null
-          id?: string
-          tags?: string[]
-          title?: string
-          updated_at?: string
-        }
-        Update: {
-          author_id?: string | null
-          body?: string
-          course_id?: string | null
-          created_at?: string
-          dish_id?: string | null
-          id?: string
-          tags?: string[]
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'notes_course_id_fkey'
-            columns: ['course_id']
-            isOneToOne: false
-            referencedRelation: 'courses'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'notes_dish_id_fkey'
-            columns: ['dish_id']
-            isOneToOne: false
-            referencedRelation: 'dishes'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      team_members: {
-        Row: {
-          created_at: string
-          display_name: string | null
-          email: string
-          id: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          display_name?: string | null
-          email: string
-          id?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          display_name?: string | null
-          email?: string
-          id?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-    }
-    Views: { [_ in never]: never }
-    Functions: { [_ in never]: never }
-    Enums: { [_ in never]: never }
-    CompositeTypes: { [_ in never]: never }
-  }
+export type EventRow = {
+  id: string
+  name: string
+  event_date: string
+  guest_count: number
+  ticket_price_cents: number
+  location_name: string | null
+  location_cost_cents: number
+  notes: string | null
+  created_at: string
+  updated_at: string
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+export type CourseRow = {
+  id: string
+  position: number
+  name: string
+  created_at: string
+}
 
-export type Tables<
-  T extends keyof DefaultSchema['Tables'],
-> = DefaultSchema['Tables'][T]['Row']
+export type DishRow = {
+  id: string
+  course_id: string
+  name: string
+  portions: number
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
 
-export type TablesInsert<
-  T extends keyof DefaultSchema['Tables'],
-> = DefaultSchema['Tables'][T]['Insert']
+export type IngredientRow = {
+  id: string
+  name: string
+  unit: string
+  price_per_unit_cents: number
+  purchase_unit: string | null
+  supplier: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
 
-export type TablesUpdate<
-  T extends keyof DefaultSchema['Tables'],
-> = DefaultSchema['Tables'][T]['Update']
+export type DishIngredientRow = {
+  dish_id: string
+  ingredient_id: string
+  amount: number
+}
+
+export type GuestRow = {
+  id: string
+  event_id: string
+  name: string
+  status: 'invited' | 'confirmed' | 'declined' | 'tentative'
+  party_size: number
+  dietary: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type TeamMemberRow = {
+  id: string
+  user_id: string | null
+  email: string
+  display_name: string | null
+  created_at: string
+}
+
+export type ExpenseRow = {
+  id: string
+  category: string
+  description: string
+  amount_cents: number
+  created_at: string
+}
+
+export type NoteRow = {
+  id: string
+  title: string
+  body: string
+  tags: string  // JSON string e.g. '["tag1","tag2"]'
+  dish_id: string | null
+  course_id: string | null
+  author_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type InspirationRow = {
+  id: string
+  title: string
+  note: string
+  url: string | null
+  image_path: string | null
+  tags: string  // JSON string e.g. '["tag1","tag2"]'
+  dish_id: string | null
+  course_id: string | null
+  author_id: string | null
+  created_at: string
+  updated_at: string
+}

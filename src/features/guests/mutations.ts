@@ -1,5 +1,5 @@
 import { api } from '../../lib/api'
-import { mapGuest, type Guest } from '../../types/domain'
+import { mapGuest, type Guest, type GuestRow } from '../../types/domain'
 
 export type GuestInput = {
   eventId: string
@@ -11,13 +11,13 @@ export type GuestInput = {
 }
 
 export async function createGuest(input: GuestInput): Promise<Guest> {
-  const data = await api.post<Record<string, unknown>>('/guests', input)
+  const data = await api.post<GuestRow>('/guests', input)
   return mapGuest(data)
 }
 
 export async function updateGuest(input: GuestInput & { id: string }): Promise<Guest> {
   const { id, ...body } = input
-  const data = await api.patch<Record<string, unknown>>(`/guests/${id}`, body)
+  const data = await api.patch<GuestRow>(`/guests/${id}`, body)
   return mapGuest(data)
 }
 

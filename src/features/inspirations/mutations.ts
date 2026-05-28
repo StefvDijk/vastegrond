@@ -1,5 +1,5 @@
 import { api } from '../../lib/api'
-import { mapInspiration, type Inspiration } from '../../types/domain'
+import { mapInspiration, type Inspiration, type InspirationRow } from '../../types/domain'
 import { deleteInspirationImage } from './storage'
 
 export type InspirationInput = {
@@ -13,13 +13,13 @@ export type InspirationInput = {
 }
 
 export async function createInspiration(input: InspirationInput): Promise<Inspiration> {
-  const data = await api.post<Record<string, unknown>>('/inspirations', input)
+  const data = await api.post<InspirationRow>('/inspirations', input)
   return mapInspiration(data)
 }
 
 export async function updateInspiration(input: InspirationInput & { id: string }): Promise<Inspiration> {
   const { id, ...body } = input
-  const data = await api.patch<Record<string, unknown>>(`/inspirations/${id}`, body)
+  const data = await api.patch<InspirationRow>(`/inspirations/${id}`, body)
   return mapInspiration(data)
 }
 

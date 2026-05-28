@@ -1,5 +1,5 @@
 import { api } from '../../lib/api'
-import { mapExpense, type Expense } from '../../types/domain'
+import { mapExpense, type Expense, type ExpenseRow } from '../../types/domain'
 
 export type ExpenseInput = {
   category: string
@@ -8,13 +8,13 @@ export type ExpenseInput = {
 }
 
 export async function createExpense(input: ExpenseInput): Promise<Expense> {
-  const data = await api.post<Record<string, unknown>>('/expenses', input)
+  const data = await api.post<ExpenseRow>('/expenses', input)
   return mapExpense(data)
 }
 
 export async function updateExpense(input: ExpenseInput & { id: string }): Promise<Expense> {
   const { id, ...body } = input
-  const data = await api.patch<Record<string, unknown>>(`/expenses/${id}`, body)
+  const data = await api.patch<ExpenseRow>(`/expenses/${id}`, body)
   return mapExpense(data)
 }
 

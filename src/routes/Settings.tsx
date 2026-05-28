@@ -31,7 +31,7 @@ export function Settings() {
       <IosNavBar
         title="Team"
         eyebrow="Wie & waar"
-        description="Toegang tot de app. Sign-ups zijn uit — invites lopen via het Supabase-dashboard."
+        description="Toegang tot de app. Sign-ups zijn uit — nieuwe gebruikers worden handmatig toegevoegd."
         trailing={
           <IosNavAction
             primary
@@ -52,7 +52,7 @@ export function Settings() {
             <span className="t-caption t-faded">Wie & waar</span>
             <h1 className="t-display-m mt-s-2">Team</h1>
             <p className="t-body-s t-soft mt-s-3" style={{ maxWidth: '52ch' }}>
-              Toegang tot de app. Sign-ups zijn uit — invites lopen via het Supabase-dashboard.
+              Toegang tot de app. Sign-ups zijn uit — nieuwe gebruikers worden handmatig toegevoegd.
             </p>
           </div>
           <Button
@@ -177,22 +177,11 @@ export function Settings() {
         </h2>
         <ol className="mt-s-5 flex flex-col gap-s-3 list-decimal pl-s-5 t-body-m t-soft">
           <li>
-            Open{' '}
-            <a
-              href="https://supabase.com/dashboard/project/kodzjrvgzpnjspwfdeos/auth/users"
-              target="_blank"
-              rel="noreferrer"
-              className="text-accent underline hover:no-underline"
-            >
-              Supabase → Authentication → Users
-            </a>
-            .
+            Voeg het e-mailadres en een tijdelijk wachtwoord toe via de Worker-beheeromgeving
+            (D1-database, tabel <code>team_members</code>).
           </li>
-          <li>
-            Klik <strong className="text-ink">Add user → Send invitation</strong>, vul het
-            e-mailadres in.
-          </li>
-          <li>Voeg datzelfde e-mailadres hier toe als teamlid voor zichtbaarheid.</li>
+          <li>Geef de nieuwe gebruiker het wachtwoord en vraag het te wijzigen bij eerste login.</li>
+          <li>Voeg datzelfde e-mailadres hier toe als teamlid voor zichtbaarheid in de app.</li>
         </ol>
       </Card>
       </div>

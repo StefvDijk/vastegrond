@@ -1,5 +1,5 @@
 import { api } from '../../lib/api'
-import { mapDish, type Dish } from '../../types/domain'
+import { mapDish, type Dish, type DishRow } from '../../types/domain'
 
 export type DishInput = {
   courseId: string
@@ -9,13 +9,13 @@ export type DishInput = {
 }
 
 export async function createDish(input: DishInput): Promise<Dish> {
-  const data = await api.post<Record<string, unknown>>('/dishes', input)
+  const data = await api.post<DishRow>('/dishes', input)
   return mapDish(data)
 }
 
 export async function updateDish(input: DishInput & { id: string }): Promise<Dish> {
   const { id, ...body } = input
-  const data = await api.patch<Record<string, unknown>>(`/dishes/${id}`, body)
+  const data = await api.patch<DishRow>(`/dishes/${id}`, body)
   return mapDish(data)
 }
 

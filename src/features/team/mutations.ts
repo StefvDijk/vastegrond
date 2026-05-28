@@ -1,5 +1,5 @@
 import { api } from '../../lib/api'
-import { mapTeamMember, type TeamMember } from '../../types/domain'
+import { mapTeamMember, type TeamMember, type TeamMemberRow } from '../../types/domain'
 
 export type TeamMemberInput = {
   email: string
@@ -7,13 +7,13 @@ export type TeamMemberInput = {
 }
 
 export async function createTeamMember(input: TeamMemberInput): Promise<TeamMember> {
-  const data = await api.post<Record<string, unknown>>('/team', input)
+  const data = await api.post<TeamMemberRow>('/team', input)
   return mapTeamMember(data)
 }
 
 export async function updateTeamMember(input: TeamMemberInput & { id: string }): Promise<TeamMember> {
   const { id, ...body } = input
-  const data = await api.patch<Record<string, unknown>>(`/team/${id}`, body)
+  const data = await api.patch<TeamMemberRow>(`/team/${id}`, body)
   return mapTeamMember(data)
 }
 
