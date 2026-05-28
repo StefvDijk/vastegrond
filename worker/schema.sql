@@ -95,6 +95,8 @@ CREATE TABLE IF NOT EXISTS notes (
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 CREATE INDEX IF NOT EXISTS notes_updated_at_idx ON notes (updated_at DESC);
+CREATE INDEX IF NOT EXISTS notes_dish_id_idx ON notes (dish_id);
+CREATE INDEX IF NOT EXISTS notes_course_id_idx ON notes (course_id);
 
 CREATE TABLE IF NOT EXISTS inspirations (
   id TEXT PRIMARY KEY,
@@ -110,3 +112,5 @@ CREATE TABLE IF NOT EXISTS inspirations (
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 CREATE INDEX IF NOT EXISTS inspirations_created_at_idx ON inspirations (created_at DESC);
+CREATE INDEX IF NOT EXISTS inspirations_dish_id_idx ON inspirations (dish_id);
+CREATE INDEX IF NOT EXISTS inspirations_course_id_idx ON inspirations (course_id);
