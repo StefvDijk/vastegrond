@@ -14,13 +14,7 @@
       "database_id": "ab89963b-2533-4ccb-a942-080ade51f38e"
     }
   ],
-  "r2_buckets": [
-    {
-      "binding": "R2",
-      "bucket_name": "vastegrond-inspirations"
-    }
-  ],
-  "observability": {
+"observability": {
     "enabled": true
   }
 }
