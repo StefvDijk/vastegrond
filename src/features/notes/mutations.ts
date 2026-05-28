@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase'
+import { api } from '../../lib/api'
 import { mapNote, type Note } from '../../types/domain'
 
 export type NoteInput = {
@@ -10,54 +10,16 @@ export type NoteInput = {
 }
 
 export async function createNote(input: NoteInput): Promise<Note> {
-  const { data: userData } = await supabase.auth.getUser()
-  const authorId = userData.user?.id ?? null
-
-  const { data, error } = await supabase
-    .from('notes')
-    .insert({
-      title: input.title,
-      body: input.body,
-      tags: input.tags,
-      dish_id: input.dishId,
-      course_id: input.courseId,
-      author_id: authorId,
-    })
-    .select('*')
-    .single()
-  if (error || !data) {
-    console.error('createNote failed:', error)
-    throw new Error(error?.message ?? 'Toevoegen mislukt')
-  }
+  const data = await api.post<Record<string, unknown>>('/notes', input)
   return mapNote(data)
 }
 
-export async function updateNote(
-  input: NoteInput & { id: string },
-): Promise<Note> {
-  const { data, error } = await supabase
-    .from('notes')
-    .update({
-      title: input.title,
-      body: input.body,
-      tags: input.tags,
-      dish_id: input.dishId,
-      course_id: input.courseId,
-    })
-    .eq('id', input.id)
-    .select('*')
-    .single()
-  if (error || !data) {
-    console.error('updateNote failed:', error)
-    throw new Error(error?.message ?? 'Bewerken mislukt')
-  }
+export async function updateNote(input: NoteInput & { id: string }): Promise<Note> {
+  const { id, ...body } = input
+  const data = await api.patch<Record<string, unknown>>(`/notes/${id}`, body)
   return mapNote(data)
 }
 
 export async function deleteNote(id: string): Promise<void> {
-  const { error } = await supabase.from('notes').delete().eq('id', id)
-  if (error) {
-    console.error('deleteNote failed:', error)
-    throw new Error(error.message)
-  }
+  await api.delete(`/notes/${id}`)
 }

@@ -22,7 +22,6 @@ export function useInspirationImageUrl(path: string | null | undefined) {
     queryKey: path ? inspirationsKeys.image(path) : ['inspirations', 'image', 'none'],
     queryFn: () => getInspirationImageUrl(path as string),
     enabled: Boolean(path),
-    staleTime: 55 * 60 * 1000, // signed URL leeft 60 min
   })
 }
 
