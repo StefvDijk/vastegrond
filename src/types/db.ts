@@ -63,7 +63,6 @@ export type GuestRow = {
 
 export type TeamMemberRow = {
   id: string
-  user_id: string | null
   email: string
   display_name: string | null
   created_at: string

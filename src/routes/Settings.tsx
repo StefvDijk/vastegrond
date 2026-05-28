@@ -139,7 +139,7 @@ export function Settings() {
                   </span>
                   <span className="flex items-center gap-s-2">
                     <UserRound size={16} aria-hidden />
-                    {m.userId ? 'Gekoppeld' : 'Nog niet ingelogd'}
+                    Actief
                   </span>
                 </div>
               </div>

@@ -96,7 +96,6 @@ export type Ingredient = {
 
 export type TeamMember = {
   id: string
-  userId: string | null
   email: string
   displayName: string | null
   createdAt: string
@@ -162,7 +161,6 @@ export function mapIngredient(row: IngredientRow): Ingredient {
 export function mapTeamMember(row: TeamMemberRow): TeamMember {
   return {
     id: row.id,
-    userId: row.user_id,
     email: row.email,
     displayName: row.display_name,
     createdAt: row.created_at,

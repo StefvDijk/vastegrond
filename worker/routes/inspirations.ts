@@ -83,9 +83,12 @@ inspirationsRoutes.delete('/upload/:path{.+}', async (c) => {
   return c.body(null, 204)
 })
 
-// GET /api/inspirations/images/:path* — serve R2 object (authenticated)
+// GET /api/inspirations/images/:path* — serve R2 object (authenticated, own files only)
 inspirationsRoutes.get('/images/:path{.+}', async (c) => {
   const path = c.req.param('path')
+  if (!path.startsWith(c.get('userId') + '/')) {
+    return c.json({ error: 'Geen toegang' }, 403)
+  }
   const obj = await c.env.R2.get(path)
   if (!obj) return c.json({ error: 'Niet gevonden' }, 404)
   const headers = new Headers()
@@ -95,7 +98,7 @@ inspirationsRoutes.get('/images/:path{.+}', async (c) => {
 })
 
 function inferExtension(file: File): string {
-  if (file.name?.includes('.')) return file.name.split('.').pop()!.toLowerCase()
+  if (file.name?.includes('.')) return file.name.split('.').pop()?.toLowerCase() ?? 'bin'
   const t = file.type
   if (t === 'image/jpeg') return 'jpg'
   if (t === 'image/png') return 'png'
