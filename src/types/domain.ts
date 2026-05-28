@@ -1,18 +1,31 @@
 // Domain types: camelCase weergave van de snake_case database-rijen.
 // Bedragen blijven in cents (int) — UI gebruikt formatEuro(cents / 100).
 
-import type { Tables } from './db'
+import type {
+  EventRow,
+  CourseRow,
+  DishRow,
+  IngredientRow,
+  DishIngredientRow,
+  GuestRow,
+  TeamMemberRow,
+  ExpenseRow,
+  NoteRow,
+  InspirationRow,
+} from './db'
 
-export type EventRow = Tables<'events'>
-export type CourseRow = Tables<'courses'>
-export type DishRow = Tables<'dishes'>
-export type IngredientRow = Tables<'ingredients'>
-export type DishIngredientRow = Tables<'dish_ingredients'>
-export type GuestRow = Tables<'guests'>
-export type TeamMemberRow = Tables<'team_members'>
-export type ExpenseRow = Tables<'expenses'>
-export type NoteRow = Tables<'notes'>
-export type InspirationRow = Tables<'inspirations'>
+export type {
+  EventRow,
+  CourseRow,
+  DishRow,
+  IngredientRow,
+  DishIngredientRow,
+  GuestRow,
+  TeamMemberRow,
+  ExpenseRow,
+  NoteRow,
+  InspirationRow,
+}
 
 export type Event = {
   id: string
@@ -83,7 +96,6 @@ export type Ingredient = {
 
 export type TeamMember = {
   id: string
-  userId: string | null
   email: string
   displayName: string | null
   createdAt: string
@@ -149,7 +161,6 @@ export function mapIngredient(row: IngredientRow): Ingredient {
 export function mapTeamMember(row: TeamMemberRow): TeamMember {
   return {
     id: row.id,
-    userId: row.user_id,
     email: row.email,
     displayName: row.display_name,
     createdAt: row.created_at,
@@ -182,12 +193,23 @@ export type Inspiration = {
   updatedAt: string
 }
 
+function parseTags(raw: string | string[] | null | undefined): string[] {
+  if (!raw) return []
+  if (Array.isArray(raw)) return raw
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    return Array.isArray(parsed) ? (parsed as string[]) : []
+  } catch {
+    return []
+  }
+}
+
 export function mapNote(row: NoteRow): Note {
   return {
     id: row.id,
     title: row.title,
     body: row.body,
-    tags: row.tags ?? [],
+    tags: parseTags(row.tags),
     dishId: row.dish_id,
     courseId: row.course_id,
     authorId: row.author_id,
@@ -203,7 +225,7 @@ export function mapInspiration(row: InspirationRow): Inspiration {
     note: row.note,
     url: row.url,
     imagePath: row.image_path,
-    tags: row.tags ?? [],
+    tags: parseTags(row.tags),
     dishId: row.dish_id,
     courseId: row.course_id,
     authorId: row.author_id,

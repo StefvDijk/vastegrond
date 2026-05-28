@@ -1,23 +1,20 @@
-import { useState, type FormEvent } from 'react'
-import { Navigate } from 'react-router-dom'
+import { type FormEvent, useState } from 'react'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { z } from 'zod'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth'
 import { Button, Card, Field, Input } from '../components/ui'
 
 const schema = z.object({
   email: z.string().trim().toLowerCase().email('Geldig e-mailadres vereist'),
-  code: z
-    .string()
-    .trim()
-    .regex(/^\d{4}$/, 'Code is 4 cijfers'),
+  pin: z.string().trim().regex(/^\d{4}$/, 'Code is 4 cijfers'),
 })
 
 export function Login() {
-  const { session, loading } = useAuth()
+  const { user, loading, signIn } = useAuth()
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
+  const [pin, setPin] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   if (loading) {
@@ -28,31 +25,21 @@ export function Login() {
     )
   }
 
-  if (session) {
-    return <Navigate to="/overview" replace />
-  }
+  if (user) return <Navigate to="/overview" replace />
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const parsed = schema.safeParse({ email, code })
+    const parsed = schema.safeParse({ email, pin })
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? 'Ongeldige invoer')
       return
     }
-
     setSubmitting(true)
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: parsed.data.email,
-        password: parsed.data.code,
-      })
-      if (error) {
-        toast.error('E-mail of code klopt niet.')
-        return
-      }
-      // Session change triggert AuthGuard redirect
-    } catch {
-      toast.error('Er ging iets mis. Probeer het opnieuw.')
+      await signIn(parsed.data.email, parsed.data.pin)
+      navigate('/overview', { replace: true })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Er ging iets mis.')
     } finally {
       setSubmitting(false)
     }
@@ -73,7 +60,6 @@ export function Login() {
         <p className="t-body-m t-soft mt-s-3">
           Vul je e-mailadres in plus je 4-cijferige code.
         </p>
-
         <form onSubmit={onSubmit} className="mt-s-6 flex flex-col gap-s-4">
           <Field label="E-mail" htmlFor="login-email">
             <Input
@@ -87,17 +73,17 @@ export function Login() {
               placeholder="jij@voorbeeld.nl"
             />
           </Field>
-          <Field label="Code" htmlFor="login-code">
+          <Field label="Code" htmlFor="login-pin">
             <Input
-              id="login-code"
+              id="login-pin"
               type="password"
               autoComplete="current-password"
               inputMode="numeric"
               pattern="\d{4}"
               maxLength={4}
               required
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
               placeholder="••••"
               style={{ letterSpacing: '0.4em', fontFamily: 'var(--font-mono)' }}
             />

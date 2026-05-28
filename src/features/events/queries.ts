@@ -1,31 +1,16 @@
-import { supabase } from '../../lib/supabase'
-import { mapEvent, type Event } from '../../types/domain'
+import { api } from '../../lib/api'
+import { mapEvent, type Event, type EventRow } from '../../types/domain'
 
 export async function fetchEvents(): Promise<Event[]> {
-  const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .order('event_date', { ascending: true })
-
-  if (error) {
-    console.error('fetchEvents failed:', error)
-    throw new Error(error.message)
-  }
-
-  return (data ?? []).map(mapEvent)
+  const data = await api.get<EventRow[]>('/events')
+  return data.map(mapEvent)
 }
 
 export async function fetchEventById(id: string): Promise<Event | null> {
-  const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .eq('id', id)
-    .maybeSingle()
-
-  if (error) {
-    console.error('fetchEventById failed:', error)
-    throw new Error(error.message)
+  try {
+    const data = await api.get<EventRow>(`/events/${id}`)
+    return mapEvent(data)
+  } catch {
+    return null
   }
-
-  return data ? mapEvent(data) : null
 }

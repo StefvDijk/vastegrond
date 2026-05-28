@@ -1,5 +1,5 @@
-import { supabase } from '../../lib/supabase'
-import { mapEvent, type Event } from '../../types/domain'
+import { api } from '../../lib/api'
+import { mapEvent, type Event, type EventRow } from '../../types/domain'
 
 export type EventUpdateInput = {
   id: string
@@ -13,25 +13,14 @@ export type EventUpdateInput = {
 }
 
 export async function updateEvent(input: EventUpdateInput): Promise<Event> {
-  const { data, error } = await supabase
-    .from('events')
-    .update({
-      name: input.name,
-      event_date: input.eventDate,
-      guest_count: input.guestCount,
-      ticket_price_cents: input.ticketPriceCents,
-      location_name: input.locationName,
-      location_cost_cents: input.locationCostCents,
-      notes: input.notes,
-    })
-    .eq('id', input.id)
-    .select('*')
-    .single()
-
-  if (error || !data) {
-    console.error('updateEvent failed:', error)
-    throw new Error(error?.message ?? 'Bewerken mislukt')
-  }
-
+  const data = await api.patch<EventRow>(`/events/${input.id}`, {
+    name: input.name,
+    eventDate: input.eventDate,
+    guestCount: input.guestCount,
+    ticketPriceCents: input.ticketPriceCents,
+    locationName: input.locationName,
+    locationCostCents: input.locationCostCents,
+    notes: input.notes,
+  })
   return mapEvent(data)
 }

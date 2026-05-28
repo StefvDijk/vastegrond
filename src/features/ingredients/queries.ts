@@ -1,15 +1,7 @@
-import { supabase } from '../../lib/supabase'
-import { mapIngredient, type Ingredient } from '../../types/domain'
+import { api } from '../../lib/api'
+import { mapIngredient, type Ingredient, type IngredientRow } from '../../types/domain'
 
 export async function fetchIngredients(): Promise<Ingredient[]> {
-  const { data, error } = await supabase
-    .from('ingredients')
-    .select('*')
-    .order('name', { ascending: true })
-
-  if (error) {
-    console.error('fetchIngredients failed:', error)
-    throw new Error(error.message)
-  }
-  return (data ?? []).map(mapIngredient)
+  const data = await api.get<IngredientRow[]>('/ingredients')
+  return data.map(mapIngredient)
 }

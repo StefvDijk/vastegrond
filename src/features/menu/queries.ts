@@ -1,17 +1,7 @@
-import { supabase } from '../../lib/supabase'
-import { mapCourse, type Course } from '../../types/domain'
+import { api } from '../../lib/api'
+import { mapCourse, type Course, type CourseRow } from '../../types/domain'
 
 export async function fetchCourses(): Promise<Course[]> {
-  const { data, error } = await supabase
-    .from('courses')
-    .select('*')
-    .order('position', { ascending: true })
-    .order('created_at', { ascending: true })
-
-  if (error) {
-    console.error('fetchCourses failed:', error)
-    throw new Error(error.message)
-  }
-
-  return (data ?? []).map(mapCourse)
+  const data = await api.get<CourseRow[]>('/courses')
+  return data.map(mapCourse)
 }
