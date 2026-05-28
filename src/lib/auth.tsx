@@ -6,51 +6,64 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { Session, User } from '@supabase/supabase-js'
-import { supabase } from './supabase'
+import { api, setToken, loadStoredToken } from './api'
+
+export type AuthUser = {
+  id: string
+  email: string
+  displayName: string | null
+}
 
 type AuthState = {
-  session: Session | null
-  user: User | null
+  user: AuthUser | null
   loading: boolean
-  signOut: () => Promise<void>
+  signIn: (email: string, pin: string) => Promise<void>
+  signOut: () => void
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let active = true
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (!active) return
-      setSession(data.session)
+    const token = loadStoredToken()
+    if (!token) {
       setLoading(false)
-    })
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
-      setSession(next)
-    })
-
-    return () => {
-      active = false
-      sub.subscription.unsubscribe()
+      return
     }
+    setToken(token)
+    api
+      .get<AuthUser>('/auth/me')
+      .then((u) => {
+        if (active) { setUser(u); setLoading(false) }
+      })
+      .catch(() => {
+        if (active) { setToken(null); setLoading(false) }
+      })
+    return () => { active = false }
   }, [])
 
   const value = useMemo<AuthState>(
     () => ({
-      session,
-      user: session?.user ?? null,
+      user,
       loading,
-      signOut: async () => {
-        await supabase.auth.signOut()
+      signIn: async (email: string, pin: string) => {
+        const { token, user: u } = await api.post<{ token: string; user: AuthUser }>(
+          '/auth/login',
+          { email, pin },
+        )
+        setToken(token)
+        setUser(u)
+      },
+      signOut: () => {
+        setToken(null)
+        setUser(null)
       },
     }),
-    [session, loading],
+    [user, loading],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
